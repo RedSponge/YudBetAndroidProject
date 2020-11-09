@@ -25,7 +25,6 @@ public class GLRenderer implements GLSurfaceView.Renderer {
 
     private ShaderProgram prog;
 
-
     private float[] triangle = {
         -.5f, -.5f,
             .5f, -.5f,
@@ -34,7 +33,8 @@ public class GLRenderer implements GLSurfaceView.Renderer {
 
     private float[] projectionMatrix;
 
-    private FloatBuffer vertexBuffer;
+    private FloatBuffer vboBuffer;
+    private int vboId;
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
@@ -46,12 +46,20 @@ public class GLRenderer implements GLSurfaceView.Renderer {
         Matrix.setIdentityM(projectionMatrix, 0);
         Matrix.orthoM(projectionMatrix, 0, 0, 160, 0, 90, -1, 1);
 
+        IntBuffer vboIdFetcher = IntBuffer.allocate(1);
+        glGenBuffers(1, vboIdFetcher);
+        vboId = vboIdFetcher.get(0);
+
         ByteBuffer buff = ByteBuffer.allocateDirect(triangle.length * 4);
         buff.order(ByteOrder.nativeOrder());
-        vertexBuffer = buff.asFloatBuffer();
+        vboBuffer = buff.asFloatBuffer();
 
-        vertexBuffer.put(triangle);
-        vertexBuffer.position(0);
+        vboBuffer.put(triangle);
+        vboBuffer.position(0);
+
+        glBindBuffer(GL_ARRAY_BUFFER, vboId);
+        glBufferData(GL_ARRAY_BUFFER, 6 * 4, vboBuffer, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
     @Override
@@ -66,10 +74,10 @@ public class GLRenderer implements GLSurfaceView.Renderer {
         prog.bind();
         int posLocation = prog.getAttributeLocation("a_position");
         glEnableVertexAttribArray(posLocation);
-        glVertexAttribPointer(posLocation, 2, GL_FLOAT, false, 4 * 2, vertexBuffer);
+        glVertexAttribPointer(posLocation, 2, GL_FLOAT, false, 4 * 2, 0);
 
 //        prog.setUniformMat4("u_projection", projectionMatrix);
-
+        glBindBuffer(GL_ARRAY_BUFFER, vboId);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         glDisableVertexAttribArray(posLocation);
