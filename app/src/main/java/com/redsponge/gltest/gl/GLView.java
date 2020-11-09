@@ -16,7 +16,7 @@ public class GLView extends GLSurfaceView {
     }
 
     private void init() {
-        setEGLContextClientVersion(2);
+        setEGLContextClientVersion(3);
         setRenderer(new GLRenderer());
         setRenderMode(RENDERMODE_CONTINUOUSLY);
     }
