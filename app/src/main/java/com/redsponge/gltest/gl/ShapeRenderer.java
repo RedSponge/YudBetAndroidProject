@@ -1,134 +1,143 @@
 package com.redsponge.gltest.gl;
 
-import android.graphics.Color;
-import android.opengl.GLUtils;
 import android.opengl.Matrix;
 
-import com.google.firebase.firestore.FirebaseFirestore;
+import com.redsponge.gltest.R;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+
 import static android.opengl.GLES30.*;
+
 public class ShapeRenderer {
 
-
-    private float[] projectionMatrix;
+    private int vbo, ebo, vao;
     private ShaderProgram shader;
-
-    private FloatBuffer vbo;
-    private int vboId;
-
-//    private int vaoId;
-
-    private int color = Color.WHITE;
-
-    private static final int FLOAT_SIZE = 4;
+    private float[] projection;
+    public static final int FLOAT_SIZE = 4;
+    private static final int MAX_VERTICES = 1024;
 
     public ShapeRenderer() {
-        this.projectionMatrix = new float[16];
-        Matrix.setIdentityM(projectionMatrix, 0);
-        Matrix.orthoM(projectionMatrix, 0, 0, 160, 0, 90, -1, 1);
+        projection = new float[16];
+        Matrix.orthoM(projection, 0, 0, 320, 0, 180, -1, 1);
+
+        int[] fetchers = new int[1];
+        glGenBuffers(fetchers.length, fetchers, 0);
+        vbo = fetchers[0];
+
+        glGenVertexArrays(1, fetchers, 0);
+        vao = fetchers[0];
 
         shader = createDefaultShader();
 
-        int[] fetcher = new int[1];
-        glGenBuffers(1, fetcher, 0);
-        vboId = fetcher[0];
+        glBindVertexArray(vao);
 
-        float[] test = new float[] {
-               -0.5f, -0.5f,
-                0.5f, -0.5f,
-                0, 0.5f
-        };
+        ByteBuffer bb = ByteBuffer.allocateDirect(Vertex.getSize() * MAX_VERTICES);
+        bb.order(ByteOrder.nativeOrder());
+        FloatBuffer vboData = bb.asFloatBuffer();
+//        vboData.put(verts);
+        vboData.position(0);
 
-        ByteBuffer bb = ByteBuffer.allocateDirect(test.length * FLOAT_SIZE);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, Vertex.getSize() * 3, vboData, GL_DYNAMIC_DRAW);
+
+        int posLocation = shader.getAttributeLocation("a_position");
+        int colLocation = shader.getAttributeLocation("a_color");
+
+        glVertexAttribPointer(posLocation, 2, GL_FLOAT, false, FLOAT_SIZE * 6, 0);
+        glVertexAttribPointer(colLocation, 4, GL_FLOAT, false, FLOAT_SIZE * 6, FLOAT_SIZE * 2);
+
+        glEnableVertexAttribArray(posLocation);
+        glEnableVertexAttribArray(colLocation);
+
+        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
+    public static ShaderProgram createDefaultShader() {
+        return new ShaderProgram(RawReader.readRawFile(R.raw.vertex), RawReader.readRawFile(R.raw.fragment));
+    }
+
+    public void drawVertexArray(Vertex[] arr) {
+        float[] verts = vertexArrayToFloats(arr);
+        ByteBuffer bb = ByteBuffer.allocateDirect(verts.length * FLOAT_SIZE);
         bb.order(ByteOrder.nativeOrder());
         FloatBuffer fb = bb.asFloatBuffer();
-        fb.put(test);
+        fb.put(verts);
         fb.position(0);
 
-        glBindBuffer(GL_ARRAY_BUFFER, vboId);
-        glBufferData(GL_ARRAY_BUFFER, test.length * FLOAT_SIZE, fb, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, verts.length * FLOAT_SIZE, fb);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-//        glGenVertexArrays(1, fetcher, 0);
-//        vaoId = fetcher[0];
+        render();
+    }
 
-//        glBindVertexArray(vaoId);
+    public void setProjectionMatrix(float[] projectionMatrix) {
+        System.arraycopy(projectionMatrix, 0, projection, 0, projectionMatrix.length);
+    }
 
-//        int posLocation = shader.getAttributeLocation("a_position");
-//        int colLocation = shader.getAttributeLocation("a_color");
-//
-//        glVertexAttribPointer(posLocation, 2, GL_FLOAT, false, 6 * GL_FLOAT, 0);
-//        glVertexAttribPointer(colLocation, 4, GL_FLOAT, false, 6 * GL_FLOAT, 2 * GL_FLOAT);
-//
-//        glEnableVertexAttribArray(posLocation);
-//        glEnableVertexAttribArray(colLocation);
+    private float[] vertexArrayToFloats(Vertex[] arr) {
+        float[] output = new float[arr.length * Vertex.getSize() / FLOAT_SIZE];
+        for(int i = 0; i < arr.length; i++) {
+            vertexToFloats(output, i * 6, arr[i]);
+        }
+        return output;
+    }
 
-//        glBindVertexArray(0);
+    private void vertexToFloats(float[] output, int offset, Vertex vertex) {
+        output[offset    ] = vertex.x;
+        output[offset + 1] = vertex.y;
+        output[offset + 2] = vertex.r;
+        output[offset + 3] = vertex.g;
+        output[offset + 4] = vertex.b;
+        output[offset + 5] = vertex.a;
     }
 
     public void drawTriangle(float x1, float y1, float x2, float y2, float x3, float y3) {
-        float r = Color.red(color) / 255f;
-        float g = Color.green(color) / 255f;
-        float b = Color.blue(color) / 255f;
-        float a = Color.alpha(color) / 255f;
-        float[] vboData = {
-                x1, y1, 0, r, g, b, a,
-                x2, y2, 0, r, g, b, a,
-                x3, y3, 0, r, g, b, a
+        final float[] verts = new float[] {
+                x1, y1, 1, 1, 0, 1,
+                x2, y2, 0, 1, 0, 1,
+                x3, y3, 0, 0, 1, 1
         };
+        ByteBuffer bb = ByteBuffer.allocateDirect(verts.length * FLOAT_SIZE);
+        bb.order(ByteOrder.nativeOrder());
+        FloatBuffer fb = bb.asFloatBuffer();
+        fb.put(verts);
+        fb.position(0);
 
-//        ByteBuffer buff = ByteBuffer.allocateDirect(vboData.length * FLOAT_SIZE);
-//        buff.order(ByteOrder.nativeOrder());
-//        FloatBuffer fb = buff.asFloatBuffer();
-//
-//        fb.position(0);
-//        fb.put(vboData);
-//        fb.position(0);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, verts.length * FLOAT_SIZE, fb);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+        render();
+    }
+
+    public void render() {
         shader.bind();
-        shader.setUniformMat4("u_projection", projectionMatrix);
-
-        glBindBuffer(GL_ARRAY_BUFFER, vboId);
-
-        int posLocation = shader.getAttributeLocation("a_position");
-//        int colLocation = shader.getAttributeLocation("a_color");
-
-        glVertexAttribPointer(posLocation, 2, GL_FLOAT, false, 2 * GL_FLOAT, 0);
-//        glVertexAttribPointer(colLocation, 4, GL_FLOAT, false, 6 * GL_FLOAT, 2 * GL_FLOAT);
-
-        glEnableVertexAttribArray(posLocation);
-//        glEnableVertexAttribArray(colLocation);
-//        glBindVertexArray(vaoId);
+        shader.setUniformMat4("u_projection", projection);
+        glBindVertexArray(vao);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
         glDrawArrays(GL_TRIANGLES, 0, 3);
-
-//        glDisableVertexAttribArray(posLocation);
-//        glDisableVertexAttribArray(colLocation);
     }
 
+    private static class Vertex {
+        private float x, y;
+        private float r, g, b, a;
 
-    public static ShaderProgram createDefaultShader() {
-        String defaultVertexShader =
-                "attribute vec4 a_position;\n" +
-                "uniform mat4 u_projection;\n" +
-                "varying vec4 v_color;\n" +
-                "void main() {\n" +
-                    "gl_Position = u_projection * a_position;\n" +
-                "}\n";
+        public Vertex(float x, float y, float r, float g, float b, float a) {
+            this.x = x;
+            this.y = y;
+            this.r = r;
+            this.g = g;
+            this.b = b;
+            this.a = a;
+        }
 
-        String defaultFragmentShader =
-                "precision mediump float;" +
-                "void main() {" +
-                    "gl_FragColor = vec4(1, 0, 0, 1);" +
-                "}";
-
-        return new ShaderProgram(defaultVertexShader, defaultFragmentShader);
-    }
-
-    public float[] getProjectionMatrix() {
-        return projectionMatrix;
+        public static int getSize() {
+            return 6 * FLOAT_SIZE;
+        }
     }
 }

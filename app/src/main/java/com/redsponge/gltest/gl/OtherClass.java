@@ -9,7 +9,7 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-import static android.opengl.GLES30.*;
+import static android.opengl.GLES31.*;
 
 public class OtherClass {
 
@@ -30,6 +30,8 @@ public class OtherClass {
             2, 3, 0
     };
 
+    private int vaoId;
+
     public void create() {
         prog = new ShaderProgram(RawReader.readRawFile(R.raw.vertex), RawReader.readRawFile(R.raw.fragment));
 
@@ -42,6 +44,9 @@ public class OtherClass {
         glGenBuffers(2, fetchers, 0);
         vboId = fetchers[0];
         eboId = fetchers[1];
+
+        glGenVertexArrays(1, fetchers, 0);
+        vaoId = fetchers[0];
 
         ByteBuffer buff = ByteBuffer.allocateDirect(triangle.length * 4);
         buff.order(ByteOrder.nativeOrder());
@@ -64,10 +69,12 @@ public class OtherClass {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboId);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.length * 4, eboBuffer, GL_STATIC_DRAW);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    }
 
-    public void render() {
-        prog.bind();
+        glBindVertexArray(vaoId);
+
+        glBindBuffer(GL_ARRAY_BUFFER, vboId);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboId);
+
         int posLocation = prog.getAttributeLocation("a_position");
         glEnableVertexAttribArray(posLocation);
         glVertexAttribPointer(posLocation, 2, GL_FLOAT, false, 4 * 6, 0);
@@ -76,15 +83,34 @@ public class OtherClass {
         glEnableVertexAttribArray(colorLocation);
         glVertexAttribPointer(colorLocation, 4, GL_FLOAT, false, 4 * 6, 2 * 4);
 
+
+        glBindVertexArray(0);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    }
+
+    public void render() {
+        glBindVertexArray(vaoId);
+
+//        glBindBuffer(GL_ARRAY_BUFFER, vboId);
+//        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboId);
+        prog.bind();
+//        int posLocation = prog.getAttributeLocation("a_position");
+//        glEnableVertexAttribArray(posLocation);
+//        glVertexAttribPointer(posLocation, 2, GL_FLOAT, false, 4 * 6, 0);
+//
+//        int colorLocation = prog.getAttributeLocation("a_color");
+//        glEnableVertexAttribArray(colorLocation);
+//        glVertexAttribPointer(colorLocation, 4, GL_FLOAT, false, 4 * 6, 2 * 4);
+
         prog.setUniformMat4("u_projection", projectionMatrix);
 
-        glBindBuffer(GL_ARRAY_BUFFER, vboId);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboId);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+//        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
 
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-
-        glDisableVertexAttribArray(posLocation);
+//        glDisableVertexAttribArray(posLocation);
     }
 }

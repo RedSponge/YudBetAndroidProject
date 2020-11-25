@@ -2,7 +2,7 @@ package com.redsponge.gltest.gl;
 
 import android.util.Log;
 
-import static android.opengl.GLES30.*;
+import static android.opengl.GLES31.*;
 
 public class ShaderProgram {
 

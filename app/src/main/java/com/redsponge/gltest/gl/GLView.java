@@ -3,8 +3,18 @@ package com.redsponge.gltest.gl;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.DragEvent;
+import android.view.MotionEvent;
+import android.view.View;
+
+import com.redsponge.gltest.gl.input.InputHandler;
 
 public class GLView extends GLSurfaceView {
+
+    private GLRenderer renderer;
+    private InputHandler inputHandler;
+
     public GLView(Context context) {
         super(context);
         init();
@@ -17,7 +27,41 @@ public class GLView extends GLSurfaceView {
 
     private void init() {
         setEGLContextClientVersion(3);
-        setRenderer(new GLRenderer());
+        setRenderer(renderer = new GLRenderer());
         setRenderMode(RENDERMODE_CONTINUOUSLY);
+        this.inputHandler = renderer;
+    }
+
+    @Override
+    public boolean performClick() {
+        return super.performClick();
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        float x = event.getX();
+        float y = event.getY();
+
+        if(inputHandler != null) {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    inputHandler.onTouch(x, y);
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    inputHandler.onDrag(x, y);
+                    break;
+                case MotionEvent.ACTION_UP:
+                    inputHandler.onRelease(x, y);
+                    break;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onDragEvent(DragEvent event) {
+        Log.d("GLView", "*******DRAG");
+        if(inputHandler != null) inputHandler.onDrag(event.getX(), event.getY());
+        return super.onDragEvent(event);
     }
 }
