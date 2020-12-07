@@ -1,0 +1,72 @@
+package com.redsponge.gltest.gl;
+
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.opengl.GLUtils;
+import android.opengl.Matrix;
+
+import static android.opengl.GLES30.*;
+public class Texture {
+
+    private final int texId;
+    private boolean isBound;
+
+    public Texture(Resources res, int resource) {
+        int[] recievers = new int[1];
+        glGenTextures(1, recievers, 0);
+        texId = recievers[0];
+
+        Bitmap bitmap = BitmapFactory.decodeResource(res, resource);
+
+        glBindTexture(GL_TEXTURE_2D, texId);
+
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+        GLUtils.texImage2D(GL_TEXTURE_2D, 0, bitmap, 0);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    public void bind() {
+        glBindTexture(GL_TEXTURE_2D, texId);
+        isBound = true;
+    }
+
+    public void unbind() {
+        glBindTexture(GL_TEXTURE_2D, 0);
+        isBound = false;
+    }
+
+    public void setMagFilter(TextureFilter filter) {
+        bind();
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter.code);
+        unbind();
+    }
+
+    public void setMinFilter(TextureFilter filter) {
+        bind();
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter.code);
+        unbind();
+    }
+
+    public void dispose() {
+        glDeleteTextures(1, new int[] {texId}, 0);
+    }
+
+    enum TextureFilter {
+        Linear(GL_LINEAR),
+        Nearest(GL_NEAREST)
+        ;
+        private final int code;
+
+        TextureFilter(int code) {
+            this.code = code;
+        }
+
+        public int getCode() {
+            return code;
+        }
+    }
+}
