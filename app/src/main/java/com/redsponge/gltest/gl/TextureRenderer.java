@@ -76,7 +76,21 @@ public class TextureRenderer {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
 
-    public void render(Texture texture) {
+    public void render(Texture texture, float x, float y, float width, float height) {
+        float[] verts = new float[] {
+                x, y, 1, 1, 1, 1, 0, 0,
+                x + width, y, 1, 1, 1, 1, 1, 0,
+                x + width, y + height, 1, 1, 1, 1, 1, 1,
+                x, y + height, 1, 1, 1, 1, 0, 1
+        };
+
+        FloatBuffer fBuf = BufferUtils.allocateFloatBuffer(verts);
+//        glBindVertexArray(vao);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, VERTS.length * 4, fBuf, GL_STATIC_DRAW);
+//        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
         shader.bind();
         glBindVertexArray(vao);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);

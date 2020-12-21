@@ -15,6 +15,7 @@ import com.redsponge.gltest.gl.projection.Viewport;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -31,6 +32,7 @@ public class GLRenderer implements GLSurfaceView.Renderer, InputHandler {
     private ArrayList<ShapeRenderer.Vertex> points;
 
     private Context context;
+    private long lastTime;
 
     public GLRenderer(Context context) {
         this.context = context;
@@ -48,6 +50,7 @@ public class GLRenderer implements GLSurfaceView.Renderer, InputHandler {
         viewport.centerCamera();
 
         texture = new Texture(context.getResources(), R.drawable.icon);
+        lastTime = System.currentTimeMillis();
     }
 
     @Override
@@ -55,8 +58,14 @@ public class GLRenderer implements GLSurfaceView.Renderer, InputHandler {
         viewport.resize(width, height);
     }
 
+    private float x = 10;
+
     @Override
     public void onDrawFrame(GL10 gl) {
+        long now = System.currentTimeMillis();
+        float delta = (now - lastTime) / 1000f;
+        lastTime = now;
+
         glClear(GL_COLOR_BUFFER_BIT);
 
         viewport.apply();
@@ -64,9 +73,11 @@ public class GLRenderer implements GLSurfaceView.Renderer, InputHandler {
 //
 //        shapeRenderer.drawVertexArray(points.toArray(new ShapeRenderer.Vertex[0]));
 
+        x += delta * 20;
+
         glEnable(GL_BLEND);
         textureRenderer.setProjectionMatrix(viewport.getCamera().getCombinedMatrix());
-        textureRenderer.render(texture);
+        textureRenderer.render(texture, x, 10, 20, 20);
         glDisable(GL_BLEND);
 //        shapeRenderer.drawTriangle(40, 50, 10, 70, 100, 100);
     }
