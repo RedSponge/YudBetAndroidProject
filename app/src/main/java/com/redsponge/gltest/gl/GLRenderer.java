@@ -2,20 +2,14 @@ package com.redsponge.gltest.gl;
 
 import android.content.Context;
 import android.opengl.GLSurfaceView;
-import android.util.Log;
-import android.view.MotionEvent;
-import android.view.View;
 
 import com.redsponge.gltest.R;
 import com.redsponge.gltest.gl.input.InputHandler;
-import com.redsponge.gltest.gl.projection.FitViewport;
 import com.redsponge.gltest.gl.projection.ScaleViewport;
 import com.redsponge.gltest.gl.projection.Viewport;
+import com.redsponge.gltest.gl.texture.Texture;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -25,6 +19,7 @@ public class GLRenderer implements GLSurfaceView.Renderer, InputHandler {
 
     private ShapeRenderer shapeRenderer;
     private TextureRenderer textureRenderer;
+    private TextureBatch texBatch;
     private Viewport viewport;
     private float touchX, touchY;
     private Texture texture;
@@ -48,6 +43,8 @@ public class GLRenderer implements GLSurfaceView.Renderer, InputHandler {
         textureRenderer = new TextureRenderer();
         viewport = new ScaleViewport(160, 90);
         viewport.centerCamera();
+
+        texBatch = new TextureBatch();
 
         texture = new Texture(context.getResources(), R.drawable.icon);
         lastTime = System.currentTimeMillis();
@@ -73,11 +70,12 @@ public class GLRenderer implements GLSurfaceView.Renderer, InputHandler {
 //
 //        shapeRenderer.drawVertexArray(points.toArray(new ShapeRenderer.Vertex[0]));
 
+        texBatch.setProjectionMatrix(viewport.getCamera().getCombinedMatrix());
         x += delta * 20;
 
         glEnable(GL_BLEND);
-        textureRenderer.setProjectionMatrix(viewport.getCamera().getCombinedMatrix());
-        textureRenderer.render(texture, x, 10, 20, 20);
+//        textureRenderer.setProjectionMatrix(viewport.getCamera().getCombinedMatrix());
+        texBatch.render(texture, 10, 10, 20, 20);
         glDisable(GL_BLEND);
 //        shapeRenderer.drawTriangle(40, 50, 10, 70, 100, 100);
     }

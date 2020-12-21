@@ -1,4 +1,4 @@
-package com.redsponge.gltest.gl;
+package com.redsponge.gltest.gl.texture;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -12,12 +12,16 @@ public class Texture {
     private final int texId;
     private boolean isBound;
 
+    private float width, height;
+
     public Texture(Resources res, int resource) {
         int[] recievers = new int[1];
         glGenTextures(1, recievers, 0);
         texId = recievers[0];
 
         Bitmap bitmap = BitmapFactory.decodeResource(res, resource);
+        width = bitmap.getWidth();
+        height = bitmap.getHeight();
 
         glBindTexture(GL_TEXTURE_2D, texId);
 
@@ -68,5 +72,13 @@ public class Texture {
         public int getCode() {
             return code;
         }
+    }
+
+    public float getWidth() {
+        return width;
+    }
+
+    public float getHeight() {
+        return height;
     }
 }

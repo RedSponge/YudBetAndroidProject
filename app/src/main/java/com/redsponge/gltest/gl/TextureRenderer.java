@@ -3,6 +3,7 @@ package com.redsponge.gltest.gl;
 import android.opengl.Matrix;
 
 import com.redsponge.gltest.R;
+import com.redsponge.gltest.gl.texture.Texture;
 import com.redsponge.gltest.gl.utils.BufferUtils;
 
 import java.nio.FloatBuffer;
