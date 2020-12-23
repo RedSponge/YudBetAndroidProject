@@ -1,15 +1,19 @@
 package com.redsponge.gltest.gl;
 
+import android.graphics.Color;
+
 import com.redsponge.gltest.R;
 import com.redsponge.gltest.gl.texture.Texture;
+import com.redsponge.gltest.gl.texture.TextureRegion;
 import com.redsponge.gltest.gl.utils.BufferUtils;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.Arrays;
 
 import static android.opengl.GLES30.*;
 public class TextureBatch {
+
+    private static final int FLOAT_SIZE = 4;
 
     private static final int MAX_RENDERS_PER_BATCH = 128;
     private static final int NUM_VERTICES = MAX_RENDERS_PER_BATCH * 4;
@@ -24,6 +28,18 @@ public class TextureBatch {
     private int posAttribLocation;
     private int texCoordsAttribLocation;
     private int colorAttribLocation;
+
+
+    private int numDrawnVerts;
+    private boolean isDrawing;
+    private FloatBuffer vertices;
+
+    private Texture currentRenderedTexture;
+    private TextureRegion tmpRegion;
+
+    private TexBatchVertex tmpVertex;
+
+    private Color color;
 
     public TextureBatch() {
         projectionMatrix = new float[16];
@@ -48,6 +64,101 @@ public class TextureBatch {
         glBindVertexArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+        vertices = BufferUtils.allocateFloatBuffer(NUM_VERTICES * TexBatchVertex.getSize() / FLOAT_SIZE);
+        tmpVertex = new TexBatchVertex();
+
+        tmpRegion = new TextureRegion();
+
+        color = Color.valueOf(Color.WHITE);
+    }
+
+    public void begin() {
+        if(isDrawing) {
+            throw new RuntimeException("Tried to begin a started batch!");
+        }
+        numDrawnVerts = 0;
+        isDrawing = true;
+        currentRenderedTexture = null;
+    }
+
+    public void draw(Texture texture, float x, float y, float width, float height) {
+        tmpRegion.setTexture(texture);
+        tmpRegion.setX(x);
+        tmpRegion.setY(y);
+        tmpRegion.setWidth(texture.getWidth());
+        tmpRegion.setHeight(texture.getHeight());
+
+        draw(tmpRegion, x, y, width, height);
+    }
+
+    public void draw(TextureRegion region, float x, float y, float width, float height) {
+        if(!isDrawing) {
+            throw new RuntimeException("Tried to draw using batch that hasn't begun!");
+        }
+
+        if(numDrawnVerts >= NUM_VERTICES) {
+            midFlush();
+        }
+
+        if(currentRenderedTexture == null) currentRenderedTexture = region.getTexture();
+        if(region.getTexture() != currentRenderedTexture) {
+            midFlush();
+            flushToScreen();
+            currentRenderedTexture = region.getTexture();
+        }
+
+        addVertex(x, y, region.getX1(), region.getY1());
+        addVertex(x + width, y, region.getX2(), region.getY1());
+        addVertex(x + width, y + height, region.getX2(), region.getY2());
+        addVertex(x, y + height, region.getX1(), region.getY2());
+    }
+
+    private void midFlush() {
+        flushToScreen();
+        numDrawnVerts = 0;
+        currentRenderedTexture = null;
+    }
+
+    private void flushToScreen() {
+        if(numDrawnVerts == 0) return;
+
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, numDrawnVerts * TexBatchVertex.getSize(), vertices);
+
+
+        shader.bind();
+        glBindVertexArray(vao);
+//        System.out.println(Arrays.toString(projectionMatrix));
+        shader.setUniformMat4("u_projection", projectionMatrix);
+
+        currentRenderedTexture.bind();
+        int count = 6 * numDrawnVerts / 4;
+        glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, 0);
+//        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(0);
+    }
+
+    private void addVertex(float x, float y, float texX, float texY) {
+        tmpVertex.x = x;
+        tmpVertex.y = y;
+        tmpVertex.r = color.red();
+        tmpVertex.g = color.green();
+        tmpVertex.b = color.blue();
+        tmpVertex.a = color.alpha();
+        tmpVertex.texX = texX;
+        tmpVertex.texY = texY;
+
+        tmpVertex.toFloatArray(vertices, numDrawnVerts * TexBatchVertex.getSize() / FLOAT_SIZE);
+        numDrawnVerts++;
+    }
+
+    public void end() {
+        if(!isDrawing) {
+            throw new RuntimeException("Tried to end batch that hasn't started!");
+        }
+        flushToScreen();
+        isDrawing = false;
     }
 
 
@@ -94,27 +205,12 @@ public class TextureBatch {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, NUM_INDICES*4, iBuf, GL_STATIC_DRAW);
     }
 
-    public void render(Texture tex, float x, float y, float width, float height) {
-        float[] verts = new float[] {
-                x, y, 1, 1, 1, 1, 0, 0,
-                x + width, y, 1, 1, 1, 1, 1, 0,
-                x + width, y + height, 1, 1, 1, 1, 1, 1,
-                x, y + height, 1, 1, 1, 1, 0, 1
-        };
-        FloatBuffer fBuf = BufferUtils.allocateFloatBuffer(verts);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, verts.length * 4, fBuf);
+    public Color getColor() {
+        return color;
+    }
 
-
-        shader.bind();
-        glBindVertexArray(vao);
-//        System.out.println(Arrays.toString(projectionMatrix));
-        shader.setUniformMat4("u_projection", projectionMatrix);
-
-        tex.bind();
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-//        glDrawArrays(GL_TRIANGLES, 0, 3);
-        glBindVertexArray(0);
+    public void setColor(Color color) {
+        this.color = color;
     }
 
     private static class TexBatchVertex {
@@ -124,6 +220,18 @@ public class TextureBatch {
 
         public static int getSize() {
             return 32;
+        }
+
+        public void toFloatArray(FloatBuffer dst, int offset) {
+            dst.position(0);
+            dst.put(offset + 0, x);
+            dst.put(offset + 1, y);
+            dst.put(offset + 2, r);
+            dst.put(offset + 3, g);
+            dst.put(offset + 4, b);
+            dst.put(offset + 5, a);
+            dst.put(offset + 6, texX);
+            dst.put(offset + 7, texY);
         }
     }
 

@@ -1,6 +1,7 @@
 package com.redsponge.gltest.gl;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.opengl.GLSurfaceView;
 
 import com.redsponge.gltest.R;
@@ -75,7 +76,24 @@ public class GLRenderer implements GLSurfaceView.Renderer, InputHandler {
 
         glEnable(GL_BLEND);
 //        textureRenderer.setProjectionMatrix(viewport.getCamera().getCombinedMatrix());
-        texBatch.render(texture, 10, 10, 20, 20);
+        texBatch.setColor(Color.valueOf(Color.GREEN));
+        texBatch.begin();
+//        texBatch.draw(texture, 10, 10, 20, 20);
+        Color[] arr = new Color[] {
+                Color.valueOf(Color.RED),
+                Color.valueOf(Color.YELLOW),
+                Color.valueOf(Color.GREEN),
+                Color.valueOf(0xFF2222FF),
+                Color.valueOf(Color.MAGENTA),
+        };
+
+        for(int i = 0; i < 16; i++) {
+            for (int j = 0; j < 9; j++) {
+                texBatch.setColor(arr[(i*9+j) % arr.length]);
+                texBatch.draw(texture, i * 10, j*10, 10, 10);
+            }
+        }
+        texBatch.end();
         glDisable(GL_BLEND);
 //        shapeRenderer.drawTriangle(40, 50, 10, 70, 100, 100);
     }

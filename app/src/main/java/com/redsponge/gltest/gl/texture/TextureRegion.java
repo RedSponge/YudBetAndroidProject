@@ -5,6 +5,8 @@ public class TextureRegion {
     private Texture texture;
     private float x, y, width, height;
 
+    public TextureRegion() {}
+
     public TextureRegion(Texture texture) {
         this.texture = texture;
         x = y = 0;
@@ -72,5 +74,7 @@ public class TextureRegion {
         return height;
     }
 
-
+    public void setTexture(Texture texture) {
+        this.texture = texture;
+    }
 }
