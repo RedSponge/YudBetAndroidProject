@@ -1,129 +1,109 @@
 package com.redsponge.gltest.gl;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.opengl.GLSurfaceView;
 
-import com.redsponge.gltest.R;
 import com.redsponge.gltest.gl.input.InputHandler;
-import com.redsponge.gltest.gl.projection.ScaleViewport;
-import com.redsponge.gltest.gl.projection.Viewport;
-import com.redsponge.gltest.gl.texture.Texture;
+import com.redsponge.gltest.glscreen.Screen;
+import com.redsponge.gltest.glscreen.TestScreen;
 
-import java.util.ArrayList;
+import java.lang.reflect.InvocationTargetException;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
-import static android.opengl.GLES31.*;
 
 public class GLRenderer implements GLSurfaceView.Renderer, InputHandler {
 
-    private ShapeRenderer shapeRenderer;
-    private TextureRenderer textureRenderer;
-    private TextureBatch texBatch;
-    private Viewport viewport;
-    private float touchX, touchY;
-    private Texture texture;
-
-    private ArrayList<ShapeRenderer.Vertex> points;
-
+    private Screen screen;
     private Context context;
     private long lastTime;
 
+    private int lastWidth, lastHeight;
+    private Class<? extends Screen> pendingScreen;
+
     public GLRenderer(Context context) {
         this.context = context;
+//        pendingScreen = TestScreen.class;
     }
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        glClearColor(0.5f, 0.5f, 1, 1);
-
-
-        points = new ArrayList<>();
-        shapeRenderer = new ShapeRenderer();
-        textureRenderer = new TextureRenderer();
-        viewport = new ScaleViewport(160, 90);
-        viewport.centerCamera();
-
-        texBatch = new TextureBatch();
-
-        texture = new Texture(context.getResources(), R.drawable.icon);
+        if(screen != null) {
+            screen.show();
+        }
         lastTime = System.currentTimeMillis();
     }
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        viewport.resize(width, height);
-    }
+        if(screen != null) {
+            screen.resize(width, height);
+        }
 
-    private float x = 10;
+        lastWidth = width;
+        lastHeight = height;
+    }
 
     @Override
     public void onDrawFrame(GL10 gl) {
+        updatePendingScreen();
+
         long now = System.currentTimeMillis();
         float delta = (now - lastTime) / 1000f;
         lastTime = now;
 
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        viewport.apply();
-//        shapeRenderer.setProjectionMatrix(viewport.getCamera().getCombinedMatrix());
-//
-//        shapeRenderer.drawVertexArray(points.toArray(new ShapeRenderer.Vertex[0]));
-
-        texBatch.setProjectionMatrix(viewport.getCamera().getCombinedMatrix());
-        x += delta * 20;
-
-        glEnable(GL_BLEND);
-//        textureRenderer.setProjectionMatrix(viewport.getCamera().getCombinedMatrix());
-        texBatch.setColor(Color.valueOf(Color.GREEN));
-        texBatch.begin();
-//        texBatch.draw(texture, 10, 10, 20, 20);
-        Color[] arr = new Color[] {
-                Color.valueOf(Color.RED),
-                Color.valueOf(Color.YELLOW),
-                Color.valueOf(Color.GREEN),
-                Color.valueOf(0xFF2222FF),
-                Color.valueOf(Color.MAGENTA),
-        };
-
-        for(int i = 0; i < 16; i++) {
-            for (int j = 0; j < 9; j++) {
-                texBatch.setColor(arr[(i*9+j) % arr.length]);
-                texBatch.draw(texture, i * 10, j*10, 10, 10);
-            }
+        if(screen != null) {
+            screen.render(delta);
         }
-        texBatch.end();
-        glDisable(GL_BLEND);
-//        shapeRenderer.drawTriangle(40, 50, 10, 70, 100, 100);
     }
 
-    public Viewport getViewport() {
-        return viewport;
+    private void updatePendingScreen() {
+        if(pendingScreen != null) {
+            try {
+                switchScreen(pendingScreen.getConstructor(Context.class).newInstance(context));
+                pendingScreen = null;
+            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void switchScreen(Screen screen) {
+        if(this.screen != null) {
+            this.screen.hide();
+            this.screen.dispose();
+        }
+        this.screen = screen;
+        this.screen.show();
+        this.screen.resize(lastWidth, lastHeight);
     }
 
     @Override
     public void onTouch(float x, float y) {
-        this.touchX = x;
-        this.touchY = y;
-
-        Vector2 output = new Vector2();
-        viewport.unproject(new Vector2(x, viewport.getScreenHeight() - y), output);
-        points.add(new ShapeRenderer.Vertex(output.x, output.y, 1, 1, 1, 1));
-
+        if(screen instanceof InputHandler) {
+            ((InputHandler) screen).onTouch(x, y);
+        }
     }
 
     @Override
     public void onDrag(float x, float y) {
-        float dx = x - touchX;
-        float dy = y - touchY;
-//        Log.d("GLRenderer", "drag! " + dx + " " + dy);
-        this.touchX = x;
-        this.touchY = y;
+        if(screen instanceof InputHandler) {
+            ((InputHandler) screen).onDrag(x, y);
+        }
     }
 
     @Override
     public void onRelease(float x, float y) {
+        if(screen instanceof InputHandler) {
+            ((InputHandler) screen).onRelease(x, y);
+        }
+    }
 
+    public Screen getScreen() {
+        return screen;
+    }
+
+    public void setPendingScreen(Class<? extends Screen> pendingScreen) {
+        this.pendingScreen = pendingScreen;
     }
 }

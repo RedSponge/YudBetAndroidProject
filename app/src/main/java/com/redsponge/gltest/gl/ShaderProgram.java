@@ -4,7 +4,7 @@ import android.util.Log;
 
 import static android.opengl.GLES31.*;
 
-public class ShaderProgram {
+public class ShaderProgram implements Disposable {
 
     private final int shaderProgramId;
 
@@ -50,5 +50,8 @@ public class ShaderProgram {
         return glGetAttribLocation(shaderProgramId, attribute);
     }
 
-
+    @Override
+    public void dispose() {
+        glDeleteProgram(shaderProgramId);
+    }
 }

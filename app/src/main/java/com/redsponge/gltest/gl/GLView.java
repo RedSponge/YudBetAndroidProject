@@ -9,6 +9,7 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.redsponge.gltest.gl.input.InputHandler;
+import com.redsponge.gltest.glscreen.Screen;
 
 public class GLView extends GLSurfaceView {
 
@@ -32,9 +33,8 @@ public class GLView extends GLSurfaceView {
         this.inputHandler = renderer;
     }
 
-    @Override
-    public boolean performClick() {
-        return super.performClick();
+    public Screen getScreen() {
+        return renderer.getScreen();
     }
 
     @Override
@@ -60,8 +60,11 @@ public class GLView extends GLSurfaceView {
 
     @Override
     public boolean onDragEvent(DragEvent event) {
-        Log.d("GLView", "*******DRAG");
         if(inputHandler != null) inputHandler.onDrag(event.getX(), event.getY());
         return super.onDragEvent(event);
+    }
+
+    public void setPendingScreen(Class<? extends Screen> pendingScreen) {
+        renderer.setPendingScreen(pendingScreen);
     }
 }

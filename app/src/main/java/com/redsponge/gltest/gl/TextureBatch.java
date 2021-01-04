@@ -11,7 +11,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import static android.opengl.GLES30.*;
-public class TextureBatch {
+public class TextureBatch implements Disposable {
 
     private static final int FLOAT_SIZE = 4;
 
@@ -213,6 +213,7 @@ public class TextureBatch {
         this.color = color;
     }
 
+    @SuppressWarnings("PointlessArithmeticExpression")
     private static class TexBatchVertex {
         private float x, y;
         private float r, g, b, a;
@@ -241,5 +242,14 @@ public class TextureBatch {
 
     public void setProjectionMatrix(float[] projectionMatrix) {
         System.arraycopy(projectionMatrix, 0, this.projectionMatrix, 0, 16);
+    }
+
+    @Override
+    public void dispose() {
+        shader.dispose();
+        int[] exposer = new int[] {vbo, ebo, vao};
+        glDeleteBuffers(2, exposer, 0);
+
+        glDeleteVertexArrays(1, exposer, 2);
     }
 }
