@@ -82,12 +82,16 @@ public class TextureBatch implements Disposable {
         currentRenderedTexture = null;
     }
 
+    public void draw(Texture texture, float x, float y) {
+        draw(texture, x, y, texture.getWidth(), texture.getHeight());
+    }
+
     public void draw(Texture texture, float x, float y, float width, float height) {
         tmpRegion.setTexture(texture);
-        tmpRegion.setX(x);
-        tmpRegion.setY(y);
+        tmpRegion.setX(0);
+        tmpRegion.setY(0);
         tmpRegion.setWidth(texture.getWidth());
-        tmpRegion.setHeight(texture.getHeight());
+        tmpRegion.setHeight(texture.getHeight() );
 
         draw(tmpRegion, x, y, width, height);
     }

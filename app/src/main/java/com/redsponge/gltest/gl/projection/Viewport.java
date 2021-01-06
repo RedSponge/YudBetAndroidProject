@@ -65,7 +65,7 @@ public abstract class Viewport {
         output.y = (result[1] + 1) / 2f * viewportRecord[3] + viewportRecord[1];
     }
 
-    public void unproject(Vector2 screenCoords, Vector2 output) {
+    public Vector2 unproject(Vector2 screenCoords, Vector2 output) {
 
         float[] result = new float[] {
                 ((screenCoords.x  - viewportRecord[0]) / viewportRecord[2]) * 2 - 1, ((screenCoords.y - viewportRecord[1]) / viewportRecord[3]) * 2 - 1, 0, 1
@@ -74,6 +74,7 @@ public abstract class Viewport {
         Matrix.multiplyMV(result, 0, camera.getInvertedCombinedMatrix(), 0, result, 0);
         output.x = result[0];
         output.y = result[1];
+        return output;
     }
 
     public float getScreenWidth() {

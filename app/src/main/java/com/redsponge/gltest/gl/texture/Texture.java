@@ -59,7 +59,7 @@ public class Texture {
         glDeleteTextures(1, new int[] {texId}, 0);
     }
 
-    enum TextureFilter {
+    public enum TextureFilter {
         Linear(GL_LINEAR),
         Nearest(GL_NEAREST)
         ;
