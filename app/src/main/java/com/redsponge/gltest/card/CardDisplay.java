@@ -1,15 +1,24 @@
 package com.redsponge.gltest.card;
 
+import com.google.firebase.database.Exclude;
 import com.redsponge.gltest.gl.Vector2;
 
 public class CardDisplay {
 
     private float x;
     private float y;
+
+    @Exclude
     private float width;
+    @Exclude
     private float height;
+
     private boolean isFlipped;
     private boolean isChosen;
+
+    public CardDisplay() {
+        this(0, 0);
+    }
 
     public CardDisplay(float x, float y) {
         this.x = x;
@@ -69,5 +78,14 @@ public class CardDisplay {
     public boolean contains(Vector2 point) {
         return x < point.x && point.x < x + width
             && y < point.y && point.y < y + height;
+    }
+
+    public void set(CardDisplay value) {
+        this.x = value.x;
+        this.y = value.y;
+        this.width = value.width;
+        this.height = value.height;
+        this.isChosen = value.isChosen;
+        this.isFlipped = value.isFlipped;
     }
 }

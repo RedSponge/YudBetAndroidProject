@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "348590388999",
+    "firebase_url": "https://cardtable-e2fbc-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "cardtable-e2fbc",
+    "storage_bucket": "cardtable-e2fbc.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:348590388999:android:e4f157441a51bb68ebb7a2",
+        "android_client_info": {
+          "package_name": "com.redsponge.gltest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "348590388999-nfskcu1gnud8um62oot6apps0t673oto.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8a8MsHMIonYlyUbgdBmfePC5a71lO1OI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "348590388999-nfskcu1gnud8um62oot6apps0t673oto.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

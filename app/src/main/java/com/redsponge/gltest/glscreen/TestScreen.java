@@ -4,8 +4,10 @@ import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLES30;
 
+import com.google.firebase.database.FirebaseDatabase;
 import com.redsponge.gltest.R;
 import com.redsponge.gltest.card.CardDisplay;
+import com.redsponge.gltest.card.CardFirebaseConnector;
 import com.redsponge.gltest.gl.TextureBatch;
 import com.redsponge.gltest.gl.Vector2;
 import com.redsponge.gltest.gl.input.InputHandler;
@@ -13,7 +15,9 @@ import com.redsponge.gltest.gl.projection.FitViewport;
 import com.redsponge.gltest.gl.texture.Texture;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class TestScreen extends Screen implements InputHandler {
 
@@ -22,7 +26,7 @@ public class TestScreen extends Screen implements InputHandler {
     private Texture texture;
 
     private List<CardDisplay> cardDisplays;
-
+    private Map<CardDisplay, CardFirebaseConnector> connectors;
     private Texture cardFlipped, cardFront;
 
     private CardDisplay selectedDisplay;
@@ -38,17 +42,29 @@ public class TestScreen extends Screen implements InputHandler {
         viewport = new FitViewport(320, 180);
         viewport.centerCamera();
 
+        connectors = new HashMap<>();
+
         batch = new TextureBatch();
 
         texture = new Texture(context.getResources(), R.drawable.icon);
 
         cardDisplays = new ArrayList<>();
-        cardDisplays.add(new CardDisplay(50, 50));
-        cardDisplays.add(new CardDisplay(50, 50));
-        cardDisplays.add(new CardDisplay(50, 50));
-        cardDisplays.add(new CardDisplay(50, 50));
-        cardDisplays.add(new CardDisplay(50, 50));
-        cardDisplays.add(new CardDisplay(50, 50));
+
+        // TODO: Read initiail cards from DB!
+        for (int i = 0; i < 20; i++) {
+            cardDisplays.add(new CardDisplay(10 * i, 50));
+            cardDisplays.add(new CardDisplay(10 * i, 50));
+            cardDisplays.add(new CardDisplay(10 * i, 50));
+            cardDisplays.add(new CardDisplay(10 * i, 50));
+            cardDisplays.add(new CardDisplay(10 * i, 50));
+            cardDisplays.add(new CardDisplay(10 * i, 50));
+        }
+
+        FirebaseDatabase db = FirebaseDatabase.getInstance();
+        for (int i = 0; i < cardDisplays.size(); i++) {
+            CardDisplay cardDisplay = cardDisplays.get(i);
+            connectors.put(cardDisplay, new CardFirebaseConnector(cardDisplay, db.getReference("rooms").child("heya").child("cards").child(i + "")));
+        }
 
         cardFlipped = new Texture(context.getResources(), R.drawable.card_back);
         cardFront = new Texture(context.getResources(), R.drawable.card_front);
@@ -102,7 +118,7 @@ public class TestScreen extends Screen implements InputHandler {
         System.out.println("HELLO! " + x + " " + y + " " + inWorld);
         if(selectedDisplay == null) {
             int idx = -1;
-            for(int i = 0; i < cardDisplays.size(); i++) {
+            for(int i = cardDisplays.size() - 1; i >= 0; i--) {
                 CardDisplay cardDisplay = cardDisplays.get(i);
                 System.out.println(cardDisplay.getX() + " " + cardDisplay.getY());
                 if (cardDisplay.contains(inWorld) && !cardDisplay.isChosen()) {
@@ -119,6 +135,7 @@ public class TestScreen extends Screen implements InputHandler {
                 System.out.println("MOVING TO FRONT");
                 cardDisplays.remove(idx);
                 cardDisplays.add(selectedDisplay);
+                connectors.get(selectedDisplay).pushUpdate();
             }
         }
     }
@@ -140,6 +157,7 @@ public class TestScreen extends Screen implements InputHandler {
             selectedDisplay.setX(inWorld.x - selectedDisplay.getWidth() / 2f);
             selectedDisplay.setY(inWorld.y - selectedDisplay.getWidth() / 2f);
             isDragged = true;
+            connectors.get(selectedDisplay).pushUpdate();
         }
     }
 
@@ -156,6 +174,7 @@ public class TestScreen extends Screen implements InputHandler {
                 selectedDisplay.setFlipped(!selectedDisplay.isFlipped());
             }
             selectedDisplay.setChosen(false);
+            connectors.get(selectedDisplay).pushUpdate();
             selectedDisplay = null;
         }
     }
