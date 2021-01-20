@@ -7,7 +7,9 @@ import android.opengl.GLES30;
 import com.google.firebase.database.FirebaseDatabase;
 import com.redsponge.gltest.R;
 import com.redsponge.gltest.card.CardDisplay;
-import com.redsponge.gltest.card.CardFirebaseConnector;
+import com.redsponge.gltest.card.CardFBC;
+import com.redsponge.gltest.card.CardListFBC;
+import com.redsponge.gltest.card.RoomFBC;
 import com.redsponge.gltest.gl.TextureBatch;
 import com.redsponge.gltest.gl.Vector2;
 import com.redsponge.gltest.gl.input.InputHandler;
@@ -25,8 +27,9 @@ public class TestScreen extends Screen implements InputHandler {
     private TextureBatch batch;
     private Texture texture;
 
+    private CardListFBC cardsFBC;
     private List<CardDisplay> cardDisplays;
-    private Map<CardDisplay, CardFirebaseConnector> connectors;
+    private Map<CardDisplay, CardFBC> connectors;
     private Texture cardFlipped, cardFront;
 
     private CardDisplay selectedDisplay;
@@ -42,32 +45,20 @@ public class TestScreen extends Screen implements InputHandler {
         viewport = new FitViewport(320, 180);
         viewport.centerCamera();
 
-        connectors = new HashMap<>();
-
         batch = new TextureBatch();
-
         texture = new Texture(context.getResources(), R.drawable.icon);
 
-        cardDisplays = new ArrayList<>();
 
         // TODO: Read initiail cards from DB!
-        for (int i = 0; i < 20; i++) {
-            cardDisplays.add(new CardDisplay(10 * i, 50));
-            cardDisplays.add(new CardDisplay(10 * i, 50));
-            cardDisplays.add(new CardDisplay(10 * i, 50));
-            cardDisplays.add(new CardDisplay(10 * i, 50));
-            cardDisplays.add(new CardDisplay(10 * i, 50));
-            cardDisplays.add(new CardDisplay(10 * i, 50));
-        }
 
         FirebaseDatabase db = FirebaseDatabase.getInstance();
-        for (int i = 0; i < cardDisplays.size(); i++) {
-            CardDisplay cardDisplay = cardDisplays.get(i);
-            connectors.put(cardDisplay, new CardFirebaseConnector(cardDisplay, db.getReference("rooms").child("heya").child("cards").child(i + "")));
-        }
+
+        cardsFBC = new CardListFBC(db.getReference("rooms/heya/cards"));
+        cardDisplays = cardsFBC.getCardDisplays();
+        connectors = cardsFBC.getDisplayConnectorMap();
 
         cardFlipped = new Texture(context.getResources(), R.drawable.card_back);
-        cardFront = new Texture(context.getResources(), R.drawable.card_front);
+        cardFront = new Texture(context.getResources(), R.drawable.suit1);
 
         cardFront.setMagFilter(Texture.TextureFilter.Nearest);
         cardFront.setMinFilter(Texture.TextureFilter.Nearest);

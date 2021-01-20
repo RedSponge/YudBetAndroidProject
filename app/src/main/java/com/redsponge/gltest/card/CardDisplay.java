@@ -15,6 +15,7 @@ public class CardDisplay {
 
     private boolean isFlipped;
     private boolean isChosen;
+    private String type;
 
     public CardDisplay() {
         this(0, 0);
@@ -25,6 +26,7 @@ public class CardDisplay {
         this.y = y;
         this.width = 16 * 2;
         this.height = 24 * 2;
+        this.type = "suit1";
     }
 
     public float getX() {
@@ -87,5 +89,14 @@ public class CardDisplay {
         this.height = value.height;
         this.isChosen = value.isChosen;
         this.isFlipped = value.isFlipped;
+        this.type = value.type;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

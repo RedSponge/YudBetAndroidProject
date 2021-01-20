@@ -7,20 +7,20 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.Objects;
-
-public class CardFirebaseConnector {
+public class CardFBC {
 
     private CardDisplay cardDisplay;
     private final DatabaseReference dbReference;
+    private ValueEventListener listener;
 
-    public CardFirebaseConnector(CardDisplay cardDisplay, DatabaseReference dbReference) {
+    public CardFBC(CardDisplay cardDisplay, DatabaseReference dbReference) {
         this.cardDisplay = cardDisplay;
         this.dbReference = dbReference;
-        dbReference.addValueEventListener(new ValueEventListener() {
+        dbReference.addValueEventListener(listener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                cardDisplay.set(Objects.requireNonNull(dataSnapshot.getValue(CardDisplay.class)));
+                CardDisplay cd = dataSnapshot.getValue(CardDisplay.class);
+                if(cd != null) cardDisplay.set(cd);
             }
 
             @Override
@@ -30,6 +30,10 @@ public class CardFirebaseConnector {
         });
 
         pushUpdate();
+    }
+
+    public void detach() {
+        dbReference.removeEventListener(listener);
     }
 
     public void pushUpdate() {
