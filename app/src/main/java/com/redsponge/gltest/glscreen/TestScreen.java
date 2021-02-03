@@ -8,18 +8,12 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.redsponge.gltest.R;
 import com.redsponge.gltest.card.CardDisplay;
 import com.redsponge.gltest.card.CardFBC;
-import com.redsponge.gltest.card.CardListFBC;
-import com.redsponge.gltest.card.RoomFBC;
+import com.redsponge.gltest.card.CardRoomFBC;
 import com.redsponge.gltest.gl.TextureBatch;
 import com.redsponge.gltest.gl.Vector2;
 import com.redsponge.gltest.gl.input.InputHandler;
 import com.redsponge.gltest.gl.projection.FitViewport;
 import com.redsponge.gltest.gl.texture.Texture;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class TestScreen extends Screen implements InputHandler {
 
@@ -27,12 +21,10 @@ public class TestScreen extends Screen implements InputHandler {
     private TextureBatch batch;
     private Texture texture;
 
-    private CardListFBC cardsFBC;
-    private List<CardDisplay> cardDisplays;
-    private Map<CardDisplay, CardFBC> connectors;
+    private CardRoomFBC cardRoomFBC;
     private Texture cardFlipped, cardFront;
 
-    private CardDisplay selectedDisplay;
+    private CardFBC selectedFBC;
     private long cardSelectionTime;
     private boolean isDragged;
 
@@ -49,13 +41,12 @@ public class TestScreen extends Screen implements InputHandler {
         texture = new Texture(context.getResources(), R.drawable.icon);
 
 
-        // TODO: Read initiail cards from DB!
+        // TODO: Read initial cards from DB!
 
         FirebaseDatabase db = FirebaseDatabase.getInstance();
 
-        cardsFBC = new CardListFBC(db.getReference("rooms/heya/cards"));
-        cardDisplays = cardsFBC.getCardDisplays();
-        connectors = cardsFBC.getDisplayConnectorMap();
+//        CardRoomFBC.initialzieRoom(db.getReference("rooms/heya"));
+        cardRoomFBC = new CardRoomFBC(db.getReference("rooms/heya"));
 
         cardFlipped = new Texture(context.getResources(), R.drawable.card_back);
         cardFront = new Texture(context.getResources(), R.drawable.suit1);
@@ -78,9 +69,12 @@ public class TestScreen extends Screen implements InputHandler {
 
         batch.begin();
         batch.draw(texture, 30, 30, 80, 80);
-        synchronized (this) {
-            for (CardDisplay cardDisplay : cardDisplays) {
-                batch.draw(cardDisplay.isFlipped() ? cardFlipped : cardFront, cardDisplay.getX(), cardDisplay.getY(), cardDisplay.getWidth(), cardDisplay.getHeight());
+        if(cardRoomFBC.isFullyLoaded()) {
+            synchronized (this) {
+                for (CardFBC fbc : cardRoomFBC) {
+                    CardDisplay cardDisplay = fbc.getDisplay();
+                    batch.draw(cardDisplay.isFlipped() ? cardFlipped : cardFront, cardDisplay.getX(), cardDisplay.getY(), cardDisplay.getWidth(), cardDisplay.getHeight());
+                }
             }
         }
         batch.end();
@@ -107,35 +101,28 @@ public class TestScreen extends Screen implements InputHandler {
         inWorld.y = viewport.getWorldHeight() - inWorld.y;
 
         System.out.println("HELLO! " + x + " " + y + " " + inWorld);
-        if(selectedDisplay == null) {
-            int idx = -1;
-            for(int i = cardDisplays.size() - 1; i >= 0; i--) {
-                CardDisplay cardDisplay = cardDisplays.get(i);
+        if(selectedFBC == null) {
+            for (CardFBC fbc : cardRoomFBC) {
+                CardDisplay cardDisplay = fbc.getDisplay();
                 System.out.println(cardDisplay.getX() + " " + cardDisplay.getY());
                 if (cardDisplay.contains(inWorld) && !cardDisplay.isChosen()) {
-                    System.out.println("SELECTING CARD " + i);
+                    System.out.println("SELECTING CARD");
                     synchronized (this) {
-                        selectCard(cardDisplay);
+                        selectFBC(fbc);
+                        cardRoomFBC.pushToFront(fbc);
                     }
-                    idx = i;
                     break;
                 }
-            }
-            if (idx != -1) {
-                // Move to front
-                System.out.println("MOVING TO FRONT");
-                cardDisplays.remove(idx);
-                cardDisplays.add(selectedDisplay);
-                connectors.get(selectedDisplay).pushUpdate();
             }
         }
     }
 
-    private void selectCard(CardDisplay cardDisplay) {
-        selectedDisplay = cardDisplay;
+    private void selectFBC(CardFBC cardDisplay) {
+        selectedFBC = cardDisplay;
         cardSelectionTime = System.nanoTime();
         isDragged = false;
-        cardDisplay.setChosen(true);
+        cardDisplay.getDisplay().setChosen(true);
+        cardDisplay.pushUpdate();
     }
 
     @Override
@@ -143,12 +130,12 @@ public class TestScreen extends Screen implements InputHandler {
         Vector2 inWorld = viewport.unproject(new Vector2(x, y), new Vector2());
         inWorld.y = viewport.getWorldHeight() - inWorld.y;
 
-        if(selectedDisplay != null) {
+        if(selectedFBC != null) {
             System.out.println("DRAG!");
-            selectedDisplay.setX(inWorld.x - selectedDisplay.getWidth() / 2f);
-            selectedDisplay.setY(inWorld.y - selectedDisplay.getWidth() / 2f);
+            selectedFBC.getDisplay().setX(inWorld.x - selectedFBC.getDisplay().getWidth() / 2f);
+            selectedFBC.getDisplay().setY(inWorld.y - selectedFBC.getDisplay().getWidth() / 2f);
             isDragged = true;
-            connectors.get(selectedDisplay).pushUpdate();
+            selectedFBC.pushUpdate();
         }
     }
 
@@ -157,16 +144,16 @@ public class TestScreen extends Screen implements InputHandler {
         Vector2 inWorld = viewport.unproject(new Vector2(x, y), new Vector2());
         inWorld.y = viewport.getWorldHeight() - inWorld.y;
 
-        if(selectedDisplay != null) {
+        if(selectedFBC != null) {
             float dt = (System.nanoTime() - cardSelectionTime) / 1000000000f;
             System.out.println("TIME: " + dt);
             if(dt < 0.2f && !isDragged) {
                 System.out.println("FLIPPING!");
-                selectedDisplay.setFlipped(!selectedDisplay.isFlipped());
+                selectedFBC.getDisplay().setFlipped(!selectedFBC.getDisplay().isFlipped());
             }
-            selectedDisplay.setChosen(false);
-            connectors.get(selectedDisplay).pushUpdate();
-            selectedDisplay = null;
+            selectedFBC.getDisplay().setChosen(false);
+            selectedFBC.pushUpdate();
+            selectedFBC = null;
         }
     }
 }

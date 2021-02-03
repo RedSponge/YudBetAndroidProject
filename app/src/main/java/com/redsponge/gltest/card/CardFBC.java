@@ -39,4 +39,12 @@ public class CardFBC {
     public void pushUpdate() {
         dbReference.setValue(cardDisplay);
     }
+
+    public CardDisplay getDisplay() {
+        return cardDisplay;
+    }
+
+    public DatabaseReference getReference() {
+        return dbReference;
+    }
 }
