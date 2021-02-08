@@ -102,16 +102,18 @@ public class TestScreen extends Screen implements InputHandler {
 
         System.out.println("HELLO! " + x + " " + y + " " + inWorld);
         if(selectedFBC == null) {
-            for (CardFBC fbc : cardRoomFBC) {
-                CardDisplay cardDisplay = fbc.getDisplay();
-                System.out.println(cardDisplay.getX() + " " + cardDisplay.getY());
-                if (cardDisplay.contains(inWorld) && !cardDisplay.isChosen()) {
-                    System.out.println("SELECTING CARD");
-                    synchronized (this) {
-                        selectFBC(fbc);
-                        cardRoomFBC.pushToFront(fbc);
+            if(cardRoomFBC.isFullyLoaded()) {
+                for (CardFBC fbc : cardRoomFBC) {
+                    CardDisplay cardDisplay = fbc.getDisplay();
+                    System.out.println(cardDisplay.getX() + " " + cardDisplay.getY());
+                    if (cardDisplay.contains(inWorld) && !cardDisplay.isChosen()) {
+                        System.out.println("SELECTING CARD");
+                        synchronized (this) {
+                            selectFBC(fbc);
+                            cardRoomFBC.pushToFront(fbc);
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }
