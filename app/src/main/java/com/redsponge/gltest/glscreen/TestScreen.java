@@ -45,7 +45,7 @@ public class TestScreen extends Screen implements InputHandler {
 
         FirebaseDatabase db = FirebaseDatabase.getInstance();
 
-//        CardRoomFBC.initialzieRoom(db.getReference("rooms/heya"));
+        CardRoomFBC.initialzieRoom(db.getReference("rooms/heya"));
         cardRoomFBC = new CardRoomFBC(db.getReference("rooms/heya"));
 
         cardFlipped = new Texture(context.getResources(), R.drawable.card_back);
@@ -73,7 +73,18 @@ public class TestScreen extends Screen implements InputHandler {
             synchronized (this) {
                 for (CardFBC fbc : cardRoomFBC) {
                     CardDisplay cardDisplay = fbc.getDisplay();
-                    batch.draw(cardDisplay.isFlipped() ? cardFlipped : cardFront, cardDisplay.getX(), cardDisplay.getY(), cardDisplay.getWidth(), cardDisplay.getHeight());
+                    cardDisplay.updateDrawnPos(delta);
+
+                    float x = cardDisplay.getDrawnX() + cardDisplay.getWidth() / 2f;
+                    float y = cardDisplay.getDrawnY() + cardDisplay.getHeight() / 2f;
+                    float w = cardDisplay.getWidth() * cardDisplay.getDrawnScale();
+                    float h = cardDisplay.getHeight() * cardDisplay.getDrawnScale();
+
+                    if(w != cardDisplay.getWidth()) {
+                        System.out.println("Different width yum yum! " + w);
+                    }
+
+                    batch.draw(cardDisplay.isFlipped() ? cardFlipped : cardFront, x - w / 2f, y - h / 2f, w, h);
                 }
             }
         }
@@ -123,7 +134,7 @@ public class TestScreen extends Screen implements InputHandler {
         selectedFBC = cardDisplay;
         cardSelectionTime = System.nanoTime();
         isDragged = false;
-        cardDisplay.getDisplay().setChosen(true);
+        cardDisplay.getDisplay().setChosenTime(System.currentTimeMillis());
         cardDisplay.pushUpdate();
     }
 
@@ -136,6 +147,7 @@ public class TestScreen extends Screen implements InputHandler {
             System.out.println("DRAG!");
             selectedFBC.getDisplay().setX(inWorld.x - selectedFBC.getDisplay().getWidth() / 2f);
             selectedFBC.getDisplay().setY(inWorld.y - selectedFBC.getDisplay().getWidth() / 2f);
+            selectedFBC.getDisplay().setChosenTime(System.currentTimeMillis());
             isDragged = true;
             selectedFBC.pushUpdate();
         }
@@ -153,7 +165,7 @@ public class TestScreen extends Screen implements InputHandler {
                 System.out.println("FLIPPING!");
                 selectedFBC.getDisplay().setFlipped(!selectedFBC.getDisplay().isFlipped());
             }
-            selectedFBC.getDisplay().setChosen(false);
+            selectedFBC.getDisplay().setChosenTime(0);
             selectedFBC.pushUpdate();
             selectedFBC = null;
         }

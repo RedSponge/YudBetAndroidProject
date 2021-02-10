@@ -8,6 +8,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
+import com.redsponge.gltest.utils.ChildEventAdapter;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,8 +32,14 @@ public class CardRoomFBC implements Iterable<CardFBC> {
         displayConnectorMap = new HashMap<>();
 
         cardOrderList = new LinkedList<>();
+        initializeReferenceListeners();
+    }
 
-        reference.child(Constants.CARDS_REFERENCE).addChildEventListener(new ChildEventListener() {
+    /**
+     * Add the {@link ChildEventListener}s to the reference's "cards" and "card_order" children.
+     */
+    private void initializeReferenceListeners() {
+        reference.child(Constants.CARDS_REFERENCE).addChildEventListener(new ChildEventAdapter() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String lastName) {
                 CardDisplay cd = dataSnapshot.getValue(CardDisplay.class);
@@ -46,50 +53,21 @@ public class CardRoomFBC implements Iterable<CardFBC> {
                 fbc.detach();
                 displayConnectorMap.remove(dataSnapshot.getKey());
             }
-
-            //region unused methods
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String lastName) {
-                // Handled by individual connectors.
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-            //endregion
         });
 
-        reference.child("card_order").addChildEventListener(new ChildEventListener() {
+        reference.child(Constants.CARD_ORDER_REFERENCE).addChildEventListener(new ChildEventAdapter() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                cardOrderList.addLast(dataSnapshot.getKey());
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
+                synchronized (CardRoomFBC.this) {
+                    cardOrderList.addLast(dataSnapshot.getValue(String.class));
+                }
             }
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-                cardOrderList.remove(dataSnapshot.getKey());
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                synchronized (CardRoomFBC.this) {
+                    cardOrderList.remove(dataSnapshot.getValue(String.class));
+                }
             }
         });
     }
@@ -101,32 +79,42 @@ public class CardRoomFBC implements Iterable<CardFBC> {
             dr.setValue(new CardDisplay(i * 10, 40));
             order.add(dr.getKey());
         }
-        reference.child("card_order").setValue(order);
+        reference.child(Constants.CARD_ORDER_REFERENCE).setValue(order);
     }
 
-    public void addCard(CardDisplay cd) {
-        DatabaseReference dr = reference.child(Constants.CARDS_REFERENCE).push();
+    /**
+     * Upload the card order.
+     */
+    private synchronized void pushCardOrder() {
+        reference.child(Constants.CARD_ORDER_REFERENCE).setValue(cardOrderList);
     }
 
-    private void pushCardOrder() {
-        reference.child("card_order").setValue(cardOrderList);
-    }
-
-    public Collection<CardFBC> getCardDisplays() {
-        return displayConnectorMap.values();
-    }
-
-    public Map<String, CardFBC> getDisplayConnectorMap() {
-        return displayConnectorMap;
-    }
-
-    public void pushToFront(CardFBC fbc) {
+    /**
+     * Moves a card to front (moves it to the front of the list and pushes it).
+     */
+    public synchronized void pushToFront(CardFBC fbc) {
         cardOrderList.remove(fbc.getReference().getKey());
         cardOrderList.add(fbc.getReference().getKey());
         pushCardOrder();
     }
 
+    /**
+     * Checks whether the client and database are synchronized - does the client have card references for all order references?
+     * @return Are the database and client synchronized?
+     */
+    public synchronized boolean isFullyLoaded() {
+        for (String s : cardOrderList) {
+            if(!displayConnectorMap.containsKey(s)) {
+                System.out.println("NOT FULLY LOADED! FAILED ON " + s);
+                return false;
+            }
+        }
+        return true;
+    }
 
+    /**
+     * @return An iterator which goes in the order defined by {@link CardRoomFBC#cardOrderList}
+     */
     @NonNull
     @Override
     public Iterator<CardFBC> iterator() {
@@ -147,12 +135,5 @@ public class CardRoomFBC implements Iterable<CardFBC> {
                 }
             }
         };
-    }
-
-    public synchronized boolean isFullyLoaded() {
-        for (String s : cardOrderList) {
-            if(!displayConnectorMap.containsKey(s)) return false;
-        }
-        return true;
     }
 }
