@@ -43,4 +43,9 @@ public class AuthActivity extends FragmentActivity {
 
         vpContent.setCurrentItem(nextItem, true);
     }
+
+    public void tryLogIn() {
+        // TODO: Access auth and check if the user exists
+
+    }
 }
