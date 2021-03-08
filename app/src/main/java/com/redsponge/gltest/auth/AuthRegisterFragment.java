@@ -1,6 +1,7 @@
 package com.redsponge.gltest.auth;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,14 +9,24 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseException;
+import com.google.firebase.FirebaseExceptionMapper;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
 import com.redsponge.gltest.R;
 import com.redsponge.gltest.utils.Utils;
+
+import java.util.Objects;
+import java.util.Optional;
 
 import io.opencensus.internal.StringUtils;
 
@@ -75,6 +86,33 @@ public class AuthRegisterFragment extends Fragment {
             etConfirmPassword.startAnimation(shakeAnimation);
             return;
         }
+
+        auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                Optional<String> emailError = Optional.empty();
+                Optional<String> passwordError = Optional.empty();
+
+                if(task.isSuccessful()) {
+                    ((AuthActivity) Objects.requireNonNull(getActivity())).tryLogIn();
+                } else {
+                    final Exception e = task.getException();
+
+                    if(e instanceof FirebaseAuthException) {
+                        switch(((FirebaseAuthException) e).getErrorCode()) {
+                            case "EMAIL_TAKEN":
+                                emailError = Optional.of("The email is taken!");
+                                break;
+                            default:
+                                Toast.makeText(getContext(), "Unhandled error: " + ((FirebaseAuthException) e).getErrorCode() + "!", Toast.LENGTH_LONG).show();
+                                Log.e("AuthRegisterFragment", "Didn't handle error code " + ((FirebaseAuthException) e).getErrorCode() + "!");
+                        }
+                        emailError.ifPresent(s -> showError(etEmail, s));
+                        passwordError.ifPresent(s -> showError(etPassword, s));
+                    }
+                }
+            }
+        });
     }
 
     private void showError(EditText et, String error) {

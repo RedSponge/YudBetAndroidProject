@@ -49,7 +49,6 @@ public class AuthActivity extends FragmentActivity {
         int nextItem = (vpContent.getCurrentItem() + 1) % pagerAdapter.getItemCount();
         btnOtherOption.setText(pagerAdapter.getAuthOption(nextItem).getSwitchButtonText());
         tvOtherOptionTitle.setText(pagerAdapter.getAuthOption(nextItem).getSwitchTitle());
-
         vpContent.setCurrentItem(nextItem, true);
     }
 
