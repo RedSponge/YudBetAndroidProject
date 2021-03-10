@@ -9,6 +9,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,6 +25,7 @@ import com.redsponge.gltest.R;
 import com.redsponge.gltest.utils.Utils;
 
 import java.util.Objects;
+import java.util.Optional;
 
 public class AuthLoginFragment extends Fragment {
 
@@ -72,31 +74,27 @@ public class AuthLoginFragment extends Fragment {
                     ((AuthActivity) Objects.requireNonNull(getActivity())).tryLogIn();
                 }
                 else {
-                    String emailError = null;
-                    String passwordError = null;
+                    Optional<String> emailError = Optional.empty();
+                    Optional<String> passwordError = Optional.empty();
 
                     if(task.getException() instanceof FirebaseAuthInvalidUserException) {
-                        emailError = "There is no user with this email!";
+                        emailError = Optional.of("There is no user with this email!");
                     }
                     else if(task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
                         String errorCode = ((FirebaseAuthInvalidCredentialsException) task.getException()).getErrorCode();
                         switch (errorCode) {
                             case "ERROR_INVALID_EMAIL": {
-                                emailError = "Invalid email address!";
+                                emailError = Optional.of("Invalid email address!");
                             } break;
                             default: {
+                                Toast.makeText(getContext(), "Not handled error code on login fail: " + errorCode, Toast.LENGTH_SHORT).show();
                                 Log.e("AuthLoginFragment", "Not handled error code on login fail: " + errorCode);
                             } break;
                         }
                     }
 
-                    if(emailError != null) {
-                        showError(etEmail, emailError);
-                    }
-
-                    if(passwordError != null) {
-                        showError(etPassword, passwordError);
-                    }
+                    emailError.ifPresent(s -> showError(etEmail, s));
+                    passwordError.ifPresent(s -> showError(etPassword, s));
                 }
             });
         });

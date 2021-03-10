@@ -7,6 +7,7 @@ import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.redsponge.gltest.utils.ChildEventAdapter;
 
@@ -26,12 +27,26 @@ public class CardRoomFBC implements Iterable<CardFBC> {
     private final Map<String, CardFBC> displayConnectorMap;
     private final LinkedList<String> cardOrderList;
 
+    private final String roomName;
+    private int maxPlayers;
 
     public CardRoomFBC(DatabaseReference reference) {
         this.reference = reference;
-        displayConnectorMap = new HashMap<>();
+        this.roomName = reference.getKey();
+        this.displayConnectorMap = new HashMap<>();
 
-        cardOrderList = new LinkedList<>();
+        this.cardOrderList = new LinkedList<>();
+        reference.child(Constants.MAX_PLAYERS_REFERENCE).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                maxPlayers = dataSnapshot.getValue(Integer.class);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
         initializeReferenceListeners();
     }
 
@@ -135,5 +150,10 @@ public class CardRoomFBC implements Iterable<CardFBC> {
                 }
             }
         };
+    }
+
+    public static void initializeRoom(String name) {
+        FirebaseDatabase db = FirebaseDatabase.getInstance();
+        //TODO: Write initialization code.
     }
 }
