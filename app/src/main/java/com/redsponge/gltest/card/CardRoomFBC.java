@@ -87,7 +87,7 @@ public class CardRoomFBC implements Iterable<CardFBC> {
         });
     }
 
-    public static void initialzieRoom(DatabaseReference reference) {
+    public static void initializeRoom(DatabaseReference reference) {
         List<String> order = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             DatabaseReference dr = reference.child(Constants.CARDS_REFERENCE).push();
@@ -152,8 +152,11 @@ public class CardRoomFBC implements Iterable<CardFBC> {
         };
     }
 
-    public static void initializeRoom(String name) {
-        FirebaseDatabase db = FirebaseDatabase.getInstance();
-        //TODO: Write initialization code.
+    public String getRoomName() {
+        return roomName;
+    }
+
+    public int getMaxPlayers() {
+        return maxPlayers;
     }
 }

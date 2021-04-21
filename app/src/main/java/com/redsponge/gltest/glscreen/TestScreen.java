@@ -45,7 +45,7 @@ public class TestScreen extends Screen implements InputHandler {
 
         FirebaseDatabase db = FirebaseDatabase.getInstance();
 
-        CardRoomFBC.initialzieRoom(db.getReference("rooms/heya"));
+        CardRoomFBC.initializeRoom(db.getReference("rooms/heya"));
         cardRoomFBC = new CardRoomFBC(db.getReference("rooms/heya"));
 
         cardFlipped = new Texture(context.getResources(), R.drawable.card_back);

@@ -1,13 +1,15 @@
 package com.redsponge.gltest.room;
 
-public class GameRoom {
+public class ListRoomItem {
 
     private String name;
     private int maxPlayers;
+    private boolean isLocked;
 
-    public GameRoom(String name, int maxPlayers) {
+    public ListRoomItem(String name, int maxPlayers, boolean isLocked) {
         this.name = name;
         this.maxPlayers = maxPlayers;
+        this.isLocked = isLocked;
     }
 
     public String getName() {
@@ -24,5 +26,13 @@ public class GameRoom {
 
     public void setMaxPlayers(int maxPlayers) {
         this.maxPlayers = maxPlayers;
+    }
+
+    public boolean isLocked() {
+        return isLocked;
+    }
+
+    public void setLocked(boolean locked) {
+        isLocked = locked;
     }
 }
