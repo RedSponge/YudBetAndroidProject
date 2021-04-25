@@ -64,7 +64,7 @@ public class GLView extends GLSurfaceView {
         return super.onDragEvent(event);
     }
 
-    public void setPendingScreen(Class<? extends Screen> pendingScreen) {
+    public void setPendingScreen(Screen pendingScreen) {
         renderer.setPendingScreen(pendingScreen);
     }
 }

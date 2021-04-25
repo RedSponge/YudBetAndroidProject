@@ -6,21 +6,24 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
+import com.redsponge.gltest.card.Constants;
 import com.redsponge.gltest.gl.GLView;
 import com.redsponge.gltest.gl.RawReader;
 import com.redsponge.gltest.glscreen.TestScreen;
 
-public class MainActivity extends Activity {
+public class GameActivity extends Activity {
 
     private GLView view;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        RawReader.resources = getResources();
         super.onCreate(savedInstanceState);
+        RawReader.resources = getResources();
+
+        String roomName = getIntent().getStringExtra(Constants.ROOM_NAME_EXTRA);
 
         view = new GLView(this);
-        view.setPendingScreen(TestScreen.class);
+        view.setPendingScreen(new TestScreen(this, roomName));
         setContentView(view);
     }
 }

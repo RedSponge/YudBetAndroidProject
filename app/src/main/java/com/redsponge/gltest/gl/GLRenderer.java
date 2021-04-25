@@ -19,11 +19,10 @@ public class GLRenderer implements GLSurfaceView.Renderer, InputHandler {
     private long lastTime;
 
     private int lastWidth, lastHeight;
-    private Class<? extends Screen> pendingScreen;
+    private Screen pendingScreen;
 
     public GLRenderer(Context context) {
         this.context = context;
-//        pendingScreen = TestScreen.class;
     }
 
     @Override
@@ -59,12 +58,8 @@ public class GLRenderer implements GLSurfaceView.Renderer, InputHandler {
 
     private void updatePendingScreen() {
         if(pendingScreen != null) {
-            try {
-                switchScreen(pendingScreen.getConstructor(Context.class).newInstance(context));
-                pendingScreen = null;
-            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException e) {
-                e.printStackTrace();
-            }
+            switchScreen(pendingScreen);
+            pendingScreen = null;
         }
     }
 
@@ -103,7 +98,7 @@ public class GLRenderer implements GLSurfaceView.Renderer, InputHandler {
         return screen;
     }
 
-    public void setPendingScreen(Class<? extends Screen> pendingScreen) {
+    public void setPendingScreen(Screen pendingScreen) {
         this.pendingScreen = pendingScreen;
     }
 }

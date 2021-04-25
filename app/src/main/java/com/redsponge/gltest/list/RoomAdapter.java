@@ -40,7 +40,8 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.ViewHolder> {
         holder.tvUserCount.setText(String.format(Locale.UK, "0 / %d Players", item.getMaxPlayers()));
         holder.ivLock.setImageResource(item.isLocked() ? R.drawable.outline_lock_black_36 : R.drawable.outline_lock_open_black_36);
         holder.btnJoinRoom.setOnClickListener((v) -> {
-            Toast.makeText(holder.btnJoinRoom.getContext(), "Clicked room " + item.getName(), Toast.LENGTH_SHORT).show();
+            ((RoomListActivity)v.getContext()).tryJoinRoom(item);
+            Toast.makeText(v.getContext(), "Clicked room " + item.getName(), Toast.LENGTH_SHORT).show();
         });
     }
 
@@ -59,6 +60,11 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.ViewHolder> {
 
     public void remove(ListRoomItem item) {
         rooms.remove(item);
+        notifyDataSetChanged();
+    }
+
+    public void clear() {
+        rooms.clear();
         notifyDataSetChanged();
     }
 

@@ -13,7 +13,7 @@
         android:windowSoftInputMode="adjustResize"
         android:theme="@style/Theme.GLTest">
         <activity
-            android:name=".MainActivity"
+            android:name=".GameActivity"
             android:screenOrientation="landscape">
         </activity>
         <activity android:name=".auth.AuthActivity">
@@ -23,6 +23,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".list.RoomListActivity"/>
+        <activity android:name=".list.CreateRoomActivity"/>
     </application>
 
 </manifest>

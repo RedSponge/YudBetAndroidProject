@@ -19,7 +19,6 @@ public class TestScreen extends Screen implements InputHandler {
 
     private FitViewport viewport;
     private TextureBatch batch;
-    private Texture texture;
 
     private CardRoomFBC cardRoomFBC;
     private Texture cardFlipped, cardFront;
@@ -28,8 +27,11 @@ public class TestScreen extends Screen implements InputHandler {
     private long cardSelectionTime;
     private boolean isDragged;
 
-    public TestScreen(Context context) {
+    private final String roomName;
+
+    public TestScreen(Context context, String roomName) {
         super(context);
+        this.roomName = roomName;
     }
 
     @Override
@@ -38,15 +40,13 @@ public class TestScreen extends Screen implements InputHandler {
         viewport.centerCamera();
 
         batch = new TextureBatch();
-        texture = new Texture(context.getResources(), R.drawable.icon);
 
 
         // TODO: Read initial cards from DB!
 
         FirebaseDatabase db = FirebaseDatabase.getInstance();
 
-        CardRoomFBC.initializeRoom(db.getReference("rooms/heya"));
-        cardRoomFBC = new CardRoomFBC(db.getReference("rooms/heya"));
+        cardRoomFBC = new CardRoomFBC(db.getReference("rooms/" + roomName));
 
         cardFlipped = new Texture(context.getResources(), R.drawable.card_back);
         cardFront = new Texture(context.getResources(), R.drawable.suit1);
@@ -61,14 +61,13 @@ public class TestScreen extends Screen implements InputHandler {
     @Override
     public void render(float delta) {
 
-        GLES30.glClearColor(0.5f, 0, 0, 1.0f);
+        GLES30.glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         GLES30.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
         viewport.apply();
         batch.setProjectionMatrix(viewport.getCamera().getCombinedMatrix());
 
         batch.begin();
-        batch.draw(texture, 30, 30, 80, 80);
         if(cardRoomFBC.isFullyLoaded()) {
             synchronized (this) {
                 for (CardFBC fbc : cardRoomFBC) {
