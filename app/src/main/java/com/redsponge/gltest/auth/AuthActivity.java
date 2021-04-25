@@ -42,6 +42,8 @@ public class AuthActivity extends FragmentActivity {
 
         btnOtherOption = findViewById(R.id.btnOtherOption);
         tvOtherOptionTitle = findViewById(R.id.tvOtherOptionTitle);
+
+        tryLogIn();
     }
 
 
@@ -53,7 +55,6 @@ public class AuthActivity extends FragmentActivity {
     }
 
     public void tryLogIn() {
-        // TODO: Access auth and check if the user exists
         FirebaseUser user = auth.getCurrentUser();
         if(user == null) return;
 

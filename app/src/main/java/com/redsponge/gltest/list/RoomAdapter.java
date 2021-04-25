@@ -44,6 +44,9 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.ViewHolder> {
         });
     }
 
+
+
+
     @Override
     public int getItemCount() {
         return rooms.size();
@@ -68,6 +71,10 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.ViewHolder> {
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
+            tvTitle = itemView.findViewById(R.id.tvTitle);
+            tvUserCount = itemView.findViewById(R.id.tvUserCount);
+            btnJoinRoom = itemView.findViewById(R.id.btnJoinRoom);
+            ivLock = itemView.findViewById(R.id.ivLock);
         }
 
         public TextView getTitleTextView() {
