@@ -51,7 +51,7 @@ public class Texture {
 
     public void setMinFilter(TextureFilter filter) {
         bind();
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter.code);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter.code);
         unbind();
     }
 

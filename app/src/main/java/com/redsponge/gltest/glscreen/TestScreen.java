@@ -36,13 +36,10 @@ public class TestScreen extends Screen implements InputHandler {
 
     @Override
     public void show() {
-        viewport = new FitViewport(320, 180);
+        viewport = new FitViewport(320*1.5f, 180*1.5f);
         viewport.centerCamera();
 
         batch = new TextureBatch();
-
-
-        // TODO: Read initial cards from DB!
 
         FirebaseDatabase db = FirebaseDatabase.getInstance();
 
