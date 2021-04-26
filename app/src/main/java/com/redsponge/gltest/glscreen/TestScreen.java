@@ -3,12 +3,14 @@ package com.redsponge.gltest.glscreen;
 import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLES30;
+import android.util.Log;
 
 import com.google.firebase.database.FirebaseDatabase;
 import com.redsponge.gltest.R;
 import com.redsponge.gltest.card.CardDisplay;
 import com.redsponge.gltest.card.CardFBC;
 import com.redsponge.gltest.card.CardRoomFBC;
+import com.redsponge.gltest.card.CardTextures;
 import com.redsponge.gltest.gl.TextureBatch;
 import com.redsponge.gltest.gl.Vector2;
 import com.redsponge.gltest.gl.input.InputHandler;
@@ -20,8 +22,10 @@ public class TestScreen extends Screen implements InputHandler {
     private FitViewport viewport;
     private TextureBatch batch;
 
-    private CardRoomFBC cardRoomFBC;
-    private Texture cardFlipped, cardFront;
+    private CardTextures cardTextures;
+
+    private final CardRoomFBC cardRoomFBC;
+//    private Texture cardFlipped, cardFront;
 
     private CardFBC selectedFBC;
     private long cardSelectionTime;
@@ -32,6 +36,8 @@ public class TestScreen extends Screen implements InputHandler {
     public TestScreen(Context context, String roomName) {
         super(context);
         this.roomName = roomName;
+        FirebaseDatabase db = FirebaseDatabase.getInstance();
+        cardRoomFBC = new CardRoomFBC(db.getReference("rooms/" + roomName));
     }
 
     @Override
@@ -41,18 +47,16 @@ public class TestScreen extends Screen implements InputHandler {
 
         batch = new TextureBatch();
 
-        FirebaseDatabase db = FirebaseDatabase.getInstance();
+//        cardFlipped = new Texture(context.getResources(), R.drawable.card_back);
+//        cardFront = new Texture(context.getResources(), R.drawable.suit1);
+//
+//        cardFront.setMagFilter(Texture.TextureFilter.Nearest);
+//        cardFront.setMinFilter(Texture.TextureFilter.Nearest);
+//
+//        cardFlipped.setMagFilter(Texture.TextureFilter.Nearest);
+//        cardFlipped.setMinFilter(Texture.TextureFilter.Nearest);
 
-        cardRoomFBC = new CardRoomFBC(db.getReference("rooms/" + roomName));
-
-        cardFlipped = new Texture(context.getResources(), R.drawable.card_back);
-        cardFront = new Texture(context.getResources(), R.drawable.suit1);
-
-        cardFront.setMagFilter(Texture.TextureFilter.Nearest);
-        cardFront.setMinFilter(Texture.TextureFilter.Nearest);
-
-        cardFlipped.setMagFilter(Texture.TextureFilter.Nearest);
-        cardFlipped.setMinFilter(Texture.TextureFilter.Nearest);
+        cardTextures = new CardTextures(context);
     }
 
     @Override
@@ -66,7 +70,7 @@ public class TestScreen extends Screen implements InputHandler {
 
         batch.begin();
         if(cardRoomFBC.isFullyLoaded()) {
-            synchronized (this) {
+            synchronized (cardRoomFBC) {
                 for (CardFBC fbc : cardRoomFBC) {
                     CardDisplay cardDisplay = fbc.getDisplay();
                     cardDisplay.updateDrawnPos(delta);
@@ -80,7 +84,8 @@ public class TestScreen extends Screen implements InputHandler {
                         System.out.println("Different width yum yum! " + w);
                     }
 
-                    batch.draw(cardDisplay.isFlipped() ? cardFlipped : cardFront, x - w / 2f, y - h / 2f, w, h);
+//                    Log.i("TestScreen", "Drawing cardDisplay with type " + cardDisplay.getType());
+                    batch.draw(cardTextures.get(cardDisplay.getType(), cardDisplay.isFlipped()), x - w / 2f, y - h / 2f, w, h);
                 }
             }
         }
@@ -110,16 +115,21 @@ public class TestScreen extends Screen implements InputHandler {
         System.out.println("HELLO! " + x + " " + y + " " + inWorld);
         if(selectedFBC == null) {
             if(cardRoomFBC.isFullyLoaded()) {
+                CardFBC finalChosen = null;
+
                 for (CardFBC fbc : cardRoomFBC) {
                     CardDisplay cardDisplay = fbc.getDisplay();
                     System.out.println(cardDisplay.getX() + " " + cardDisplay.getY());
                     if (cardDisplay.contains(inWorld) && !cardDisplay.isChosen()) {
                         System.out.println("SELECTING CARD");
-                        synchronized (this) {
-                            selectFBC(fbc);
-                            cardRoomFBC.pushToFront(fbc);
-                        }
-                        break;
+                        finalChosen = fbc;
+                    }
+                }
+
+                if(finalChosen != null) {
+                    synchronized (this) {
+                        selectFBC(finalChosen);
+                        cardRoomFBC.pushToFront(finalChosen);
                     }
                 }
             }

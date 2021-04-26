@@ -77,4 +77,15 @@ public class TextureRegion {
     public void setTexture(Texture texture) {
         this.texture = texture;
     }
+
+    @Override
+    public String toString() {
+        return "TextureRegion{" +
+                "texture=" + texture +
+                ", x=" + x +
+                ", y=" + y +
+                ", width=" + width +
+                ", height=" + height +
+                '}';
+    }
 }

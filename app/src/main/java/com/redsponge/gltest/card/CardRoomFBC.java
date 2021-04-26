@@ -89,9 +89,20 @@ public class CardRoomFBC implements Iterable<CardFBC> {
 
     public static void initializeRoom(DatabaseReference reference) {
         List<String> order = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            DatabaseReference dr = reference.child(Constants.CARDS_REFERENCE).push();
-            dr.setValue(new CardDisplay(i * 10, 40));
+        List<CardDisplay> displays = new ArrayList<>();
+
+        String[] suits = {"spade", "club", "diamond", "heart"};
+        for (int i = 0; i < suits.length; i++) {
+            for (int j = 2; j < 10; j++) {
+                displays.add(new CardDisplay(j * 10, i * 10 + 40, suits[i], j));
+            }
+        }
+
+        DatabaseReference cardsRef = reference.child(Constants.CARDS_REFERENCE);
+
+        for (CardDisplay display : displays) {
+            DatabaseReference dr = cardsRef.push();
+            dr.setValue(display);
             order.add(dr.getKey());
         }
         reference.child(Constants.CARD_ORDER_REFERENCE).setValue(order);

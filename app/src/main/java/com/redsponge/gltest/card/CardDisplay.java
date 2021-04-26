@@ -28,15 +28,15 @@ public class CardDisplay {
     private String type;
 
     public CardDisplay() {
-        this(0, 0);
+        this(0, 0, "spade", 2);
     }
 
-    public CardDisplay(float x, float y) {
+    public CardDisplay(float x, float y, String suit, int number) {
         this.x = x;
         this.y = y;
         this.width = 16 * 2;
         this.height = 24 * 2;
-        this.type = "suit1";
+        this.type = suit + number;
         this.chosenTime = 0;
     }
 
