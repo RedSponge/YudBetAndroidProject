@@ -15,9 +15,9 @@ public class Texture {
     private float width, height;
 
     public Texture(Resources res, int resource) {
-        int[] recievers = new int[1];
-        glGenTextures(1, recievers, 0);
-        texId = recievers[0];
+        int[] receivers = new int[1];
+        glGenTextures(1, receivers, 0);
+        texId = receivers[0];
 
         Bitmap bitmap = BitmapFactory.decodeResource(res, resource);
         width = bitmap.getWidth();

@@ -20,8 +20,8 @@ public class CardTextures {
         packedTexture = new Texture(ctx.getResources(), R.drawable.cards_packed);
         packedTexture.setMagFilter(Texture.TextureFilter.Nearest);
         packedTexture.setMinFilter(Texture.TextureFilter.Nearest);
-        int cardTexWidth = 64*2;
-        int cardTexHeight = 96*2;
+        int cardTexWidth = 64;
+        int cardTexHeight = 96;
         //flippedTexture = new Texture(ctx.getResources(), R.drawable.card_back);
         //textures.put("suit1", new Texture(ctx.getResources(), R.drawable.suit1));
         String[] suits = {"heart", "diamond", "club", "spade"};
@@ -37,7 +37,7 @@ public class CardTextures {
             }
         }
 
-        textures.put("flipped", new TextureRegion(packedTexture, 0, cardTexHeight*4, cardTexWidth, cardTexHeight));
+        textures.put("flipped", new TextureRegion(packedTexture, 0, cardTexHeight * 4, cardTexWidth, cardTexHeight));
     }
 
 
