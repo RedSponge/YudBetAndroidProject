@@ -25,7 +25,6 @@ public class TestScreen extends Screen implements InputHandler {
     private CardTextures cardTextures;
 
     private final CardRoomFBC cardRoomFBC;
-//    private Texture cardFlipped, cardFront;
 
     private CardFBC selectedFBC;
     private long cardSelectionTime;
@@ -47,14 +46,6 @@ public class TestScreen extends Screen implements InputHandler {
 
         batch = new TextureBatch();
 
-//        cardFlipped = new Texture(context.getResources(), R.drawable.card_back);
-//        cardFront = new Texture(context.getResources(), R.drawable.suit1);
-//
-//        cardFront.setMagFilter(Texture.TextureFilter.Nearest);
-//        cardFront.setMinFilter(Texture.TextureFilter.Nearest);
-//
-//        cardFlipped.setMagFilter(Texture.TextureFilter.Nearest);
-//        cardFlipped.setMinFilter(Texture.TextureFilter.Nearest);
 
         cardTextures = new CardTextures(context);
     }
@@ -80,11 +71,6 @@ public class TestScreen extends Screen implements InputHandler {
                     float w = cardDisplay.getWidth() * cardDisplay.getDrawnScale();
                     float h = cardDisplay.getHeight() * cardDisplay.getDrawnScale();
 
-                    if(w != cardDisplay.getWidth()) {
-                        System.out.println("Different width yum yum! " + w);
-                    }
-
-//                    Log.i("TestScreen", "Drawing cardDisplay with type " + cardDisplay.getType());
                     batch.draw(cardTextures.get(cardDisplay.getType(), cardDisplay.isFlipped()), x - w / 2f, y - h / 2f, w, h);
                 }
             }
