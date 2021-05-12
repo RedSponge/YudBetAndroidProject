@@ -93,7 +93,7 @@ public class CardRoomFBC implements Iterable<CardFBC> {
 
         String[] suits = {"spade", "club", "diamond", "heart"};
         for (int i = 0; i < suits.length; i++) {
-            for (int j = 2; j < 10; j++) {
+            for (int j = 1; j <= 13; j++) {
                 displays.add(new CardDisplay(j * 10, i * 10 + 40, suits[i], j));
             }
         }

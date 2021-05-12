@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -47,7 +48,6 @@ public class RoomListActivity extends Activity {
 
         db = FirebaseDatabase.getInstance();
 
-
         srlList.setOnRefreshListener(this::loadRooms);
         loadRooms();
 
@@ -86,13 +86,14 @@ public class RoomListActivity extends Activity {
     public void tryJoinRoom(ListRoomItem roomItem) {
         if(roomItem.isLocked()) {
             EditText passwordInput = new EditText(this);
+            passwordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
             new AlertDialog.Builder(this)
                     .setView(passwordInput)
                     .setMessage("Enter Password:")
                     .setTitle("This room is locked!")
                     .setNegativeButton("Cancel", null)
                     .setPositiveButton("Join", (dialog, which) -> {
-                        String pwInput = passwordInput.getText().toString();
+                        String pwInput = ((EditText)dialog).getText().toString();
                         if(!Utils.hashPassword(pwInput).equals(roomItem.getHashedPassword())) {
                             Toast.makeText(this, "Incorrect Password!", Toast.LENGTH_SHORT).show();
                         } else {

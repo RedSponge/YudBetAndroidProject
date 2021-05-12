@@ -4,13 +4,21 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.opengl.GLUtils;
-import android.opengl.Matrix;
 
-import static android.opengl.GLES30.*;
-public class Texture {
+import com.redsponge.gltest.gl.Disposable;
+
+import static android.opengl.GLES30.GL_LINEAR;
+import static android.opengl.GLES30.GL_NEAREST;
+import static android.opengl.GLES30.GL_TEXTURE_2D;
+import static android.opengl.GLES30.GL_TEXTURE_MAG_FILTER;
+import static android.opengl.GLES30.GL_TEXTURE_MIN_FILTER;
+import static android.opengl.GLES30.glBindTexture;
+import static android.opengl.GLES30.glDeleteTextures;
+import static android.opengl.GLES30.glGenTextures;
+import static android.opengl.GLES30.glTexParameterf;
+public class Texture implements Disposable {
 
     private final int texId;
-    private boolean isBound;
 
     private float width, height;
 
@@ -35,12 +43,10 @@ public class Texture {
 
     public void bind() {
         glBindTexture(GL_TEXTURE_2D, texId);
-        isBound = true;
     }
 
     public void unbind() {
         glBindTexture(GL_TEXTURE_2D, 0);
-        isBound = false;
     }
 
     public void setMagFilter(TextureFilter filter) {
@@ -55,6 +61,7 @@ public class Texture {
         unbind();
     }
 
+    @Override
     public void dispose() {
         glDeleteTextures(1, new int[] {texId}, 0);
     }

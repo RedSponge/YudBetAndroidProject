@@ -47,7 +47,6 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.ViewHolder> {
 
 
 
-
     @Override
     public int getItemCount() {
         return rooms.size();

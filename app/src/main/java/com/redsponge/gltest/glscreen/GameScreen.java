@@ -17,7 +17,7 @@ import com.redsponge.gltest.gl.input.InputHandler;
 import com.redsponge.gltest.gl.projection.FitViewport;
 import com.redsponge.gltest.gl.texture.Texture;
 
-public class TestScreen extends Screen implements InputHandler {
+public class GameScreen extends Screen implements InputHandler {
 
     private FitViewport viewport;
     private TextureBatch batch;
@@ -32,7 +32,7 @@ public class TestScreen extends Screen implements InputHandler {
 
     private final String roomName;
 
-    public TestScreen(Context context, String roomName) {
+    public GameScreen(Context context, String roomName) {
         super(context);
         this.roomName = roomName;
         FirebaseDatabase db = FirebaseDatabase.getInstance();

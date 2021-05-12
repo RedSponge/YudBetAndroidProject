@@ -133,13 +133,11 @@ public class TextureBatch implements Disposable {
 
         shader.bind();
         glBindVertexArray(vao);
-//        System.out.println(Arrays.toString(projectionMatrix));
         shader.setUniformMat4("u_projection", projectionMatrix);
 
         currentRenderedTexture.bind();
         int count = 6 * numDrawnVerts / 4;
         glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, 0);
-//        glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
     }
 

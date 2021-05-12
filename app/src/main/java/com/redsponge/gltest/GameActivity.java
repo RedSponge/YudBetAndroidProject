@@ -2,14 +2,13 @@ package com.redsponge.gltest;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.view.View;
 
 import androidx.annotation.Nullable;
 
 import com.redsponge.gltest.card.Constants;
 import com.redsponge.gltest.gl.GLView;
 import com.redsponge.gltest.gl.RawReader;
-import com.redsponge.gltest.glscreen.TestScreen;
+import com.redsponge.gltest.glscreen.GameScreen;
 
 public class GameActivity extends Activity {
 
@@ -23,7 +22,7 @@ public class GameActivity extends Activity {
         String roomName = getIntent().getStringExtra(Constants.ROOM_NAME_EXTRA);
 
         view = new GLView(this);
-        view.setPendingScreen(new TestScreen(this, roomName));
+        view.setPendingScreen(new GameScreen(this, roomName));
         setContentView(view);
     }
 }

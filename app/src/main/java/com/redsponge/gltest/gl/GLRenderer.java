@@ -5,9 +5,6 @@ import android.opengl.GLSurfaceView;
 
 import com.redsponge.gltest.gl.input.InputHandler;
 import com.redsponge.gltest.glscreen.Screen;
-import com.redsponge.gltest.glscreen.TestScreen;
-
-import java.lang.reflect.InvocationTargetException;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;

@@ -22,8 +22,7 @@ public class CardTextures {
         packedTexture.setMinFilter(Texture.TextureFilter.Nearest);
         int cardTexWidth = 64;
         int cardTexHeight = 96;
-        //flippedTexture = new Texture(ctx.getResources(), R.drawable.card_back);
-        //textures.put("suit1", new Texture(ctx.getResources(), R.drawable.suit1));
+
         String[] suits = {"heart", "diamond", "club", "spade"};
 
         for (int i = 0; i < suits.length; i++) {
