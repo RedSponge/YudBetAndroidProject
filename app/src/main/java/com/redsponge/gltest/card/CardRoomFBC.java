@@ -5,14 +5,11 @@ import androidx.annotation.Nullable;
 
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.redsponge.gltest.utils.Listeners;
 import com.redsponge.gltest.utils.ChildEventAdapter;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -25,7 +22,9 @@ public class CardRoomFBC implements Iterable<CardFBC> {
     private final DatabaseReference reference;
 
     private final Map<String, CardFBC> displayConnectorMap;
-    private final LinkedList<String> cardOrderList;
+    private final LinkedList<String> pileOrderList;
+
+    private final Map<String, PileFBC> pileMap;
 
     private final String roomName;
     private int maxPlayers;
@@ -35,18 +34,10 @@ public class CardRoomFBC implements Iterable<CardFBC> {
         this.roomName = reference.getKey();
         this.displayConnectorMap = new HashMap<>();
 
-        this.cardOrderList = new LinkedList<>();
-        reference.child(Constants.MAX_PLAYERS_REFERENCE).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                maxPlayers = dataSnapshot.getValue(Integer.class);
-            }
+        this.pileOrderList = new LinkedList<>();
+        this.pileMap = new HashMap<>();
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
+        reference.child(Constants.MAX_PLAYERS_REFERENCE).addListenerForSingleValueEvent(Listeners.value(data -> maxPlayers = data.getValue(Integer.class)));
         initializeReferenceListeners();
     }
 
@@ -54,6 +45,15 @@ public class CardRoomFBC implements Iterable<CardFBC> {
      * Add the {@link ChildEventListener}s to the reference's "cards" and "card_order" children.
      */
     private void initializeReferenceListeners() {
+
+        reference.child(Constants.PILES_REFERENCE).addChildEventListener(new ChildEventAdapter() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String lastName) {
+                PileFBC pile = new PileFBC(CardRoomFBC.this, dataSnapshot.getRef())
+                super.onChildAdded(dataSnapshot, s);
+            }
+        });
+
         reference.child(Constants.CARDS_REFERENCE).addChildEventListener(new ChildEventAdapter() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String lastName) {
@@ -70,18 +70,18 @@ public class CardRoomFBC implements Iterable<CardFBC> {
             }
         });
 
-        reference.child(Constants.CARD_ORDER_REFERENCE).addChildEventListener(new ChildEventAdapter() {
+        reference.child(Constants.PILE_ORDER_REFERENCE).addChildEventListener(new ChildEventAdapter() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 synchronized (CardRoomFBC.this) {
-                    cardOrderList.addLast(dataSnapshot.getValue(String.class));
+                    pileOrderList.addLast(dataSnapshot.getValue(String.class));
                 }
             }
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
                 synchronized (CardRoomFBC.this) {
-                    cardOrderList.remove(dataSnapshot.getValue(String.class));
+                    pileOrderList.remove(dataSnapshot.getValue(String.class));
                 }
             }
         });
@@ -169,5 +169,9 @@ public class CardRoomFBC implements Iterable<CardFBC> {
 
     public int getMaxPlayers() {
         return maxPlayers;
+    }
+
+    public CardFBC getCard(String s) {
+        return displayConnectorMap.get(s);
     }
 }
