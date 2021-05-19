@@ -6,26 +6,38 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
+import com.redsponge.gltest.utils.Listeners;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class PileFBC implements Iterable<CardFBC>{
 
-    private CardRoomFBC roomIn;
-    private List<String> cardList;
+    private final RoomFBC roomIn;
+    private final List<String> cardList;
+    private final DatabaseReference ref;
+    private final ValueEventListener listener;
 
-    public PileFBC(CardRoomFBC roomIn, DatabaseReference ref) {
+    private PileData drawData;
+
+    public PileFBC(RoomFBC roomIn, DatabaseReference ref) {
         this.roomIn = roomIn;
-        cardList = new ArrayList<>();
+        this.cardList = new ArrayList<>();
+        this.ref = ref;
+        this.drawData = new PileData();
 
-        ref.addValueEventListener(new ValueEventListener() {
+        ref.child(Constants.TRANSFORM_REFERENCE).addValueEventListener(Listeners.value(data -> drawData = data.getValue(PileData.class)));
+
+        ref.child(Constants.CARDS_REFERENCE).addValueEventListener(listener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                cardList.clear();
-                for (DataSnapshot child : dataSnapshot.getChildren()) {
-                    cardList.add(child.getValue(String.class));
+                synchronized (roomIn) {
+                    cardList.clear();
+                    for (DataSnapshot child : dataSnapshot.getChildren()) {
+                        cardList.add(child.getValue(String.class));
+                    }
                 }
             }
 
@@ -34,6 +46,14 @@ public class PileFBC implements Iterable<CardFBC>{
 
             }
         });
+    }
+
+    public PileData getData() {
+        return drawData;
+    }
+
+    public void pushUpdate() {
+        ref.setValue(cardList);
     }
 
     @NonNull
@@ -52,5 +72,25 @@ public class PileFBC implements Iterable<CardFBC>{
                 return roomIn.getCard(cardList.get(i++));
             }
         };
+    }
+
+    public CardFBC getTopCard() {
+        return roomIn.getCard(cardList.get(0));
+    }
+
+    public void detach() {
+        ref.removeEventListener(listener);
+    }
+
+    public List<String> getCardOrder() {
+        return cardList;
+    }
+
+    public DatabaseReference getReference() {
+        return ref;
+    }
+
+    public boolean hasTopCard() {
+        return cardList.size() > 0 && roomIn.getCard(cardList.get(0)) != null;
     }
 }

@@ -9,6 +9,7 @@ public class Constants {
     public static final String PASSWORD_REFERENCE = "password";
     public static final String ROOM_NAME_EXTRA = "room_name";
     public static final String PILES_REFERENCE = "piles";
+    public static final String TRANSFORM_REFERENCE = "transform";
 
     public static float MAX_CHOICE_TIME = 0.1f;
 }

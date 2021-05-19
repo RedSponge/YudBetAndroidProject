@@ -3,19 +3,20 @@ package com.redsponge.gltest.glscreen;
 import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLES30;
-import android.util.Log;
 
 import com.google.firebase.database.FirebaseDatabase;
-import com.redsponge.gltest.R;
-import com.redsponge.gltest.card.CardDisplay;
 import com.redsponge.gltest.card.CardFBC;
-import com.redsponge.gltest.card.CardRoomFBC;
+import com.redsponge.gltest.card.PileData;
+import com.redsponge.gltest.card.RoomFBC;
 import com.redsponge.gltest.card.CardTextures;
+import com.redsponge.gltest.card.PileFBC;
 import com.redsponge.gltest.gl.TextureBatch;
 import com.redsponge.gltest.gl.Vector2;
 import com.redsponge.gltest.gl.input.InputHandler;
 import com.redsponge.gltest.gl.projection.FitViewport;
-import com.redsponge.gltest.gl.texture.Texture;
+import com.redsponge.gltest.gl.texture.TextureRegion;
+
+import java.util.List;
 
 public class GameScreen extends Screen implements InputHandler {
 
@@ -24,9 +25,9 @@ public class GameScreen extends Screen implements InputHandler {
 
     private CardTextures cardTextures;
 
-    private final CardRoomFBC cardRoomFBC;
+    private final RoomFBC roomFBC;
 
-    private CardFBC selectedFBC;
+    private PileFBC selectedPileFBC;
     private long cardSelectionTime;
     private boolean isDragged;
 
@@ -36,7 +37,7 @@ public class GameScreen extends Screen implements InputHandler {
         super(context);
         this.roomName = roomName;
         FirebaseDatabase db = FirebaseDatabase.getInstance();
-        cardRoomFBC = new CardRoomFBC(db.getReference("rooms/" + roomName));
+        roomFBC = new RoomFBC(db.getReference("rooms/" + roomName));
     }
 
     @Override
@@ -60,18 +61,19 @@ public class GameScreen extends Screen implements InputHandler {
         batch.setProjectionMatrix(viewport.getCamera().getCombinedMatrix());
 
         batch.begin();
-        if(cardRoomFBC.isFullyLoaded()) {
-            synchronized (cardRoomFBC) {
-                for (CardFBC fbc : cardRoomFBC) {
-                    CardDisplay cardDisplay = fbc.getDisplay();
-                    cardDisplay.updateDrawnPos(delta);
+        if(roomFBC.isFullyLoaded()) {
+            synchronized (roomFBC) {
+                List<String> pileOrder = roomFBC.getPileOrder();
+                for (String pileKey : pileOrder) {
+                    PileFBC pile = roomFBC.getPile(pileKey);
+                    System.out.println(pileKey + " " + pile);
+                    if(!pile.hasTopCard()) continue;
+                    CardFBC topCard = pile.getTopCard();
+                    TextureRegion cardTex = cardTextures.get(topCard.getDisplay().getType(), topCard.getDisplay().isFlipped());
+                    float width = pile.getData().getWidth() * pile.getData().getDrawnScale();
+                    float height = pile.getData().getHeight() * pile.getData().getDrawnScale();
 
-                    float x = cardDisplay.getDrawnX() + cardDisplay.getWidth() / 2f;
-                    float y = cardDisplay.getDrawnY() + cardDisplay.getHeight() / 2f;
-                    float w = cardDisplay.getWidth() * cardDisplay.getDrawnScale();
-                    float h = cardDisplay.getHeight() * cardDisplay.getDrawnScale();
-
-                    batch.draw(cardTextures.get(cardDisplay.getType(), cardDisplay.isFlipped()), x - w / 2f, y - h / 2f, w, h);
+                    batch.draw(cardTex, pile.getData().getDrawnX() - width / 2f, pile.getData().getDrawnY() - height / 2f, width, height);
                 }
             }
         }
@@ -99,35 +101,36 @@ public class GameScreen extends Screen implements InputHandler {
         inWorld.y = viewport.getWorldHeight() - inWorld.y;
 
         System.out.println("HELLO! " + x + " " + y + " " + inWorld);
-        if(selectedFBC == null) {
-            if(cardRoomFBC.isFullyLoaded()) {
-                CardFBC finalChosen = null;
+        if(selectedPileFBC == null) {
+            if(roomFBC.isFullyLoaded()) {
+                PileFBC finalChosen = null;
 
-                for (CardFBC fbc : cardRoomFBC) {
-                    CardDisplay cardDisplay = fbc.getDisplay();
-                    System.out.println(cardDisplay.getX() + " " + cardDisplay.getY());
-                    if (cardDisplay.contains(inWorld) && !cardDisplay.isChosen()) {
-                        System.out.println("SELECTING CARD");
-                        finalChosen = fbc;
+                for (PileFBC pileFBC : roomFBC) {
+                    PileData pile = pileFBC.getData();
+
+                    if (pile.contains(inWorld) && !pile.isChosen()) {
+                        System.out.println("Selecting Pile " + pileFBC);
+                        finalChosen = pileFBC;
+                        break;
                     }
                 }
 
                 if(finalChosen != null) {
-                    synchronized (this) {
+                    synchronized (roomFBC) {
                         selectFBC(finalChosen);
-                        cardRoomFBC.pushToFront(finalChosen);
                     }
+                    roomFBC.pushToFront(finalChosen);
                 }
             }
         }
     }
 
-    private void selectFBC(CardFBC cardDisplay) {
-        selectedFBC = cardDisplay;
+    private void selectFBC(PileFBC pile) {
+        selectedPileFBC = pile;
         cardSelectionTime = System.nanoTime();
         isDragged = false;
-        cardDisplay.getDisplay().setChosenTime(System.currentTimeMillis());
-        cardDisplay.pushUpdate();
+        pile.getData().setChosenTime(System.currentTimeMillis());
+        pile.pushUpdate();
     }
 
     @Override
@@ -135,13 +138,13 @@ public class GameScreen extends Screen implements InputHandler {
         Vector2 inWorld = viewport.unproject(new Vector2(x, y), new Vector2());
         inWorld.y = viewport.getWorldHeight() - inWorld.y;
 
-        if(selectedFBC != null) {
+        if(selectedPileFBC != null) {
             System.out.println("DRAG!");
-            selectedFBC.getDisplay().setX(inWorld.x - selectedFBC.getDisplay().getWidth() / 2f);
-            selectedFBC.getDisplay().setY(inWorld.y - selectedFBC.getDisplay().getWidth() / 2f);
-            selectedFBC.getDisplay().setChosenTime(System.currentTimeMillis());
+            selectedPileFBC.getData().setX(inWorld.x - selectedPileFBC.getData().getWidth() / 2f);
+            selectedPileFBC.getData().setY(inWorld.y - selectedPileFBC.getData().getWidth() / 2f);
+            selectedPileFBC.getData().setChosenTime(System.nanoTime());
             isDragged = true;
-            selectedFBC.pushUpdate();
+            selectedPileFBC.pushUpdate();
         }
     }
 
@@ -150,16 +153,16 @@ public class GameScreen extends Screen implements InputHandler {
         Vector2 inWorld = viewport.unproject(new Vector2(x, y), new Vector2());
         inWorld.y = viewport.getWorldHeight() - inWorld.y;
 
-        if(selectedFBC != null) {
+        if(selectedPileFBC != null) {
             float dt = (System.nanoTime() - cardSelectionTime) / 1000000000f;
             System.out.println("TIME: " + dt);
             if(dt < 0.2f && !isDragged) {
                 System.out.println("FLIPPING!");
-                selectedFBC.getDisplay().setFlipped(!selectedFBC.getDisplay().isFlipped());
+                selectedPileFBC.getTopCard().getDisplay().setFlipped(!selectedPileFBC.getTopCard().getDisplay().isFlipped());
             }
-            selectedFBC.getDisplay().setChosenTime(0);
-            selectedFBC.pushUpdate();
-            selectedFBC = null;
+            selectedPileFBC.getData().setChosenTime(0);
+            selectedPileFBC.pushUpdate();
+            selectedPileFBC = null;
         }
     }
 }

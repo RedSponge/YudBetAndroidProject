@@ -16,9 +16,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.redsponge.gltest.R;
-import com.redsponge.gltest.card.CardRoomFBC;
-import com.redsponge.gltest.card.Constants;
 import com.redsponge.gltest.card.RoomFBC;
+import com.redsponge.gltest.card.Constants;
 import com.redsponge.gltest.room.ListRoomItem;
 import com.redsponge.gltest.utils.Utils;
 
@@ -80,7 +79,7 @@ public class CreateRoomActivity extends Activity {
 
                 ListRoomItem roomItem = new ListRoomItem(roomName, maxPlayers, Utils.isBlankOrNull(password) ? "" : Utils.hashPassword(password));
                 db.getReference().child(Constants.ROOMS_REFERENCE).child(roomName).setValue(roomItem);
-                CardRoomFBC.initializeRoom(db.getReference().child(Constants.ROOMS_REFERENCE).child(roomName));
+                RoomFBC.initializeRoom(db.getReference().child(Constants.ROOMS_REFERENCE).child(roomName));
                 Toast.makeText(CreateRoomActivity.this, "Successfully Created Room!", Toast.LENGTH_SHORT).show();
                 finish();
             }
