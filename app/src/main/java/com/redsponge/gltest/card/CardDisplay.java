@@ -18,20 +18,7 @@ public class CardDisplay {
     }
 
     public void updateDrawnPos(float delta) {
-//        drawnX = MathUtils.lerp(drawnX, x, 0.2f);
-//        drawnY = MathUtils.lerp(drawnY, y, 0.2f);
-//        if(Math.abs(drawnX - x) < 0.1f) {
-//            drawnX = x;
-//        }
-//        if(Math.abs(drawnY - y) < 0.1f) {
-//            drawnY = y;
-//        }
-//
-//        float drawnScaleTarget = isChosen() ? 1.2f : 1;
-//        drawnScale = MathUtils.lerp(drawnScale, drawnScaleTarget, 0.2f);
-//        if(Math.abs(drawnScale - drawnScaleTarget) < 0.1f) {
-//            drawnScale = drawnScaleTarget;
-//        }
+
     }
 
     public boolean isFlipped() {

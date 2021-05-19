@@ -1,26 +1,24 @@
 package com.redsponge.gltest.card;
 
+import com.google.firebase.database.Exclude;
 import com.redsponge.gltest.gl.Vector2;
+import com.redsponge.gltest.utils.MathUtils;
 
 public class PileData {
 
     private float x, y, width, height;
-    private float drawnX, drawnY;
-    private float drawnScale;
+
     private long chosenTime;
 
     public PileData() {
-        this(0, 0, 16 * 2, 24 * 2, 0, 0, 1);
+        this(0, 0, 16 * 2, 24 * 2);
     }
 
-    public PileData(float x, float y, float width, float height, float drawnX, float drawnY, float drawnScale) {
+    public PileData(float x, float y, float width, float height) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
-        this.drawnX = drawnX;
-        this.drawnY = drawnY;
-        this.drawnScale = drawnScale;
         this.chosenTime = 0;
     }
 
@@ -56,30 +54,6 @@ public class PileData {
         this.height = height;
     }
 
-    public float getDrawnX() {
-        return drawnX;
-    }
-
-    public void setDrawnX(float drawnX) {
-        this.drawnX = drawnX;
-    }
-
-    public float getDrawnY() {
-        return drawnY;
-    }
-
-    public void setDrawnY(float drawnY) {
-        this.drawnY = drawnY;
-    }
-
-    public float getDrawnScale() {
-        return drawnScale;
-    }
-
-    public void setDrawnScale(float drawnScale) {
-        this.drawnScale = drawnScale;
-    }
-
     public long getChosenTime() {
         return chosenTime;
     }
@@ -95,15 +69,12 @@ public class PileData {
                 ", y=" + y +
                 ", width=" + width +
                 ", height=" + height +
-                ", drawnX=" + drawnX +
-                ", drawnY=" + drawnY +
-                ", drawnScale=" + drawnScale +
                 '}';
     }
 
     public boolean contains(Vector2 point) {
-        return x < point.x && point.x < x + width
-            && y < point.y && point.y < y + height;
+        return x - width / 2f < point.x && point.x < x + width / 2f
+            && y - height / 2f < point.y && point.y < y + height / 2f;
     }
 
     public boolean isChosen() {

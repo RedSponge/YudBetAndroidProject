@@ -115,7 +115,7 @@ public class RoomFBC implements Iterable<PileFBC> {
 
         DatabaseReference initialPileRef = reference.child(Constants.PILES_REFERENCE).push();
         initialPileRef.child(Constants.CARDS_REFERENCE).setValue(order);
-        initialPileRef.child(Constants.TRANSFORM_REFERENCE).setValue(new PileData(100, 100, 16 * 2, 24 * 2, 100, 100, 1));
+        initialPileRef.child(Constants.TRANSFORM_REFERENCE).setValue(new PileData(100, 100, 16 * 2, 24 * 2));
 
         reference.child(Constants.PILE_ORDER_REFERENCE).child("0").setValue(initialPileRef.getKey());
     }

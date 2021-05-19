@@ -66,14 +66,17 @@ public class GameScreen extends Screen implements InputHandler {
                 List<String> pileOrder = roomFBC.getPileOrder();
                 for (String pileKey : pileOrder) {
                     PileFBC pile = roomFBC.getPile(pileKey);
-                    System.out.println(pileKey + " " + pile);
-                    if(!pile.hasTopCard()) continue;
+                    pile.updateDrawnPosition();
+                    if(!pile.hasTopCard()) {
+                        System.out.println("Top card of pile " + pileKey + " is not loaded :/");
+                        continue;
+                    }
                     CardFBC topCard = pile.getTopCard();
                     TextureRegion cardTex = cardTextures.get(topCard.getDisplay().getType(), topCard.getDisplay().isFlipped());
-                    float width = pile.getData().getWidth() * pile.getData().getDrawnScale();
-                    float height = pile.getData().getHeight() * pile.getData().getDrawnScale();
+                    float width = pile.getData().getWidth() * pile.getDrawnScale();
+                    float height = pile.getData().getHeight() * pile.getDrawnScale();
 
-                    batch.draw(cardTex, pile.getData().getDrawnX() - width / 2f, pile.getData().getDrawnY() - height / 2f, width, height);
+                    batch.draw(cardTex, pile.getDrawnX() - width / 2f, pile.getDrawnY() - height / 2f, width, height);
                 }
             }
         }
@@ -157,8 +160,8 @@ public class GameScreen extends Screen implements InputHandler {
             float dt = (System.nanoTime() - cardSelectionTime) / 1000000000f;
             System.out.println("TIME: " + dt);
             if(dt < 0.2f && !isDragged) {
-                System.out.println("FLIPPING!");
-                selectedPileFBC.getTopCard().getDisplay().setFlipped(!selectedPileFBC.getTopCard().getDisplay().isFlipped());
+//                System.out.println("FLIPPING!");
+//                selectedPileFBC.getTopCard().getDisplay().setFlipped(!selectedPileFBC.getTopCard().getDisplay().isFlipped());
             }
             selectedPileFBC.getData().setChosenTime(0);
             selectedPileFBC.pushUpdate();

@@ -93,7 +93,7 @@ public class RoomListActivity extends Activity {
                     .setTitle("This room is locked!")
                     .setNegativeButton("Cancel", null)
                     .setPositiveButton("Join", (dialog, which) -> {
-                        String pwInput = ((EditText)dialog).getText().toString();
+                        String pwInput = passwordInput.getText().toString();
                         if(!Utils.hashPassword(pwInput).equals(roomItem.getHashedPassword())) {
                             Toast.makeText(this, "Incorrect Password!", Toast.LENGTH_SHORT).show();
                         } else {

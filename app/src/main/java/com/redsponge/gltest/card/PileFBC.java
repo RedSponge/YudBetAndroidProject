@@ -7,18 +7,20 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 import com.redsponge.gltest.utils.Listeners;
+import com.redsponge.gltest.utils.MathUtils;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
-public class PileFBC implements Iterable<CardFBC>{
+public class PileFBC implements Iterable<CardFBC> {
 
     private final RoomFBC roomIn;
     private final List<String> cardList;
     private final DatabaseReference ref;
     private final ValueEventListener listener;
+
+    private float drawnX, drawnY, drawnScale;
 
     private PileData drawData;
 
@@ -48,12 +50,54 @@ public class PileFBC implements Iterable<CardFBC>{
         });
     }
 
+    public void updateDrawnPosition() {
+        drawnX = MathUtils.lerp(drawnX, drawData.getX(), 0.2f);
+        drawnY = MathUtils.lerp(drawnY, drawData.getY(), 0.2f);
+        if (Math.abs(drawnX - drawData.getX()) < 0.1f) {
+            drawnX = drawData.getX();
+        }
+        if (Math.abs(drawnY - drawData.getY()) < 0.1f) {
+            drawnY = drawData.getY();
+        }
+
+        float drawnScaleTarget = drawData.isChosen() ? 1.2f : 1;
+        drawnScale = MathUtils.lerp(drawnScale, drawnScaleTarget, 0.2f);
+        if (Math.abs(drawnScale - drawnScaleTarget) < 0.1f) {
+            drawnScale = drawnScaleTarget;
+        }
+    }
+
     public PileData getData() {
         return drawData;
     }
 
     public void pushUpdate() {
-        ref.setValue(cardList);
+        ref.child(Constants.CARDS_REFERENCE).setValue(cardList);
+        ref.child(Constants.TRANSFORM_REFERENCE).setValue(drawData);
+    }
+
+    public float getDrawnX() {
+        return drawnX;
+    }
+
+    public void setDrawnX(float drawnX) {
+        this.drawnX = drawnX;
+    }
+
+    public float getDrawnY() {
+        return drawnY;
+    }
+
+    public void setDrawnY(float drawnY) {
+        this.drawnY = drawnY;
+    }
+
+    public float getDrawnScale() {
+        return drawnScale;
+    }
+
+    public void setDrawnScale(float drawnScale) {
+        this.drawnScale = drawnScale;
     }
 
     @NonNull
