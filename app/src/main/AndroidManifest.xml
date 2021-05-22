@@ -14,7 +14,8 @@
         android:theme="@style/Theme.GLTest">
         <activity
             android:name=".GameActivity"
-            android:screenOrientation="landscape">
+            android:screenOrientation="landscape"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
         </activity>
         <activity android:name=".auth.AuthActivity">
             <intent-filter>

@@ -73,6 +73,8 @@ public class PileData {
     }
 
     public boolean contains(Vector2 point) {
+        System.out.println(x - width / 2f + " " + point.x + " " + (x + width / 2f));
+        System.out.println(y - height / 2f + " " + point.y + " " + (y + height / 2f));
         return x - width / 2f < point.x && point.x < x + width / 2f
             && y - height / 2f < point.y && point.y < y + height / 2f;
     }

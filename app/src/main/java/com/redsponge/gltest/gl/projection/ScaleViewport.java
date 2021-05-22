@@ -1,7 +1,5 @@
 package com.redsponge.gltest.gl.projection;
 
-import android.opengl.GLES30;
-
 public class ScaleViewport extends Viewport {
 
     public ScaleViewport(float worldWidth, float worldHeight) {
@@ -10,6 +8,7 @@ public class ScaleViewport extends Viewport {
 
     @Override
     public void apply() {
+        super.apply();
         camera.apply();
     }
 

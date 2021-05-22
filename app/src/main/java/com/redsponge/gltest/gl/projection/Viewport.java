@@ -13,7 +13,7 @@ public abstract class Viewport {
 
     protected float screenWidth, screenHeight;
 
-    private float[] viewportRecord;
+    private final int[] viewportRecord;
 
     public Viewport(float worldWidth, float worldHeight) {
         this.worldWidth = worldWidth;
@@ -21,14 +21,17 @@ public abstract class Viewport {
         this.camera = new Camera(worldWidth, worldHeight);
         this.screenWidth = 0;
         this.screenHeight = 0;
-        this.viewportRecord = new float[4];
+        this.viewportRecord = new int[4];
     }
 
-    public abstract void apply();
+    public void apply() {
+        GLES20.glViewport(viewportRecord[0], viewportRecord[1], viewportRecord[2], viewportRecord[3]);
+    }
     public void resize(int width, int height) {
         this.screenWidth = width;
         this.screenHeight = height;
     }
+
 
     public void updateGLViewport(int x, int y, int width, int height) {
         GLES20.glViewport(x, y, width, height);

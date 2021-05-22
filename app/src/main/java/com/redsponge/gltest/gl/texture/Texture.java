@@ -7,6 +7,7 @@ import android.opengl.GLUtils;
 
 import com.redsponge.gltest.gl.Disposable;
 
+import static android.opengl.GLES20.glTexParameteri;
 import static android.opengl.GLES30.GL_LINEAR;
 import static android.opengl.GLES30.GL_NEAREST;
 import static android.opengl.GLES30.GL_TEXTURE_2D;
@@ -51,13 +52,13 @@ public class Texture implements Disposable {
 
     public void setMagFilter(TextureFilter filter) {
         bind();
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter.code);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter.code);
         unbind();
     }
 
     public void setMinFilter(TextureFilter filter) {
         bind();
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter.code);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter.code);
         unbind();
     }
 

@@ -13,4 +13,8 @@ public class MathUtils {
     public static int random(int min, int max) {
         return rnd.nextInt(max - min + 1)  + min;
     }
+
+    public static float clamp(float min, float val, float max) {
+        return Math.min(Math.max(min, val), max);
+    }
 }

@@ -3,27 +3,34 @@ package com.redsponge.gltest.glscreen;
 import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLES30;
+import android.util.Log;
 
 import com.google.firebase.database.FirebaseDatabase;
+import com.redsponge.gltest.R;
 import com.redsponge.gltest.card.CardFBC;
 import com.redsponge.gltest.card.PileData;
 import com.redsponge.gltest.card.RoomFBC;
-import com.redsponge.gltest.card.CardTextures;
+import com.redsponge.gltest.card.PackedTextures;
 import com.redsponge.gltest.card.PileFBC;
 import com.redsponge.gltest.gl.TextureBatch;
 import com.redsponge.gltest.gl.Vector2;
 import com.redsponge.gltest.gl.input.InputHandler;
 import com.redsponge.gltest.gl.projection.FitViewport;
+import com.redsponge.gltest.gl.projection.ScaleViewport;
+import com.redsponge.gltest.gl.texture.Texture;
 import com.redsponge.gltest.gl.texture.TextureRegion;
+import com.redsponge.gltest.utils.MathUtils;
 
 import java.util.List;
 
 public class GameScreen extends Screen implements InputHandler {
 
     private FitViewport viewport;
+
     private TextureBatch batch;
 
-    private CardTextures cardTextures;
+    private PackedTextures packedTextures;
+
 
     private final RoomFBC roomFBC;
 
@@ -42,25 +49,27 @@ public class GameScreen extends Screen implements InputHandler {
 
     @Override
     public void show() {
-        viewport = new FitViewport(320*1.5f, 180*1.5f);
+        viewport = new FitViewport(320*2, 180*2);
         viewport.centerCamera();
 
         batch = new TextureBatch();
 
-
-        cardTextures = new CardTextures(context);
+        packedTextures = new PackedTextures(context);
     }
 
     @Override
     public void render(float delta) {
 
-        GLES30.glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        GLES30.glClearColor(30 / 255f, 123 / 255f, 58 / 255f, 1.0f);
         GLES30.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+
 
         viewport.apply();
         batch.setProjectionMatrix(viewport.getCamera().getCombinedMatrix());
 
         batch.begin();
+        batch.draw(packedTextures.getTexture("background"), 0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
+
         if(roomFBC.isFullyLoaded()) {
             synchronized (roomFBC) {
                 List<String> pileOrder = roomFBC.getPileOrder();
@@ -68,11 +77,11 @@ public class GameScreen extends Screen implements InputHandler {
                     PileFBC pile = roomFBC.getPile(pileKey);
                     pile.updateDrawnPosition();
                     if(!pile.hasTopCard()) {
-                        System.out.println("Top card of pile " + pileKey + " is not loaded :/");
+                        Log.w("GameScreen", "Top card of pile " + pileKey + " is not loaded.");
                         continue;
                     }
                     CardFBC topCard = pile.getTopCard();
-                    TextureRegion cardTex = cardTextures.get(topCard.getDisplay().getType(), topCard.getDisplay().isFlipped());
+                    TextureRegion cardTex = packedTextures.getCard(topCard.getDisplay().getType(), topCard.getDisplay().isFlipped());
                     float width = pile.getData().getWidth() * pile.getDrawnScale();
                     float height = pile.getData().getHeight() * pile.getDrawnScale();
 
@@ -103,16 +112,16 @@ public class GameScreen extends Screen implements InputHandler {
         Vector2 inWorld = viewport.unproject(new Vector2(x, y), new Vector2());
         inWorld.y = viewport.getWorldHeight() - inWorld.y;
 
-        System.out.println("HELLO! " + x + " " + y + " " + inWorld);
         if(selectedPileFBC == null) {
             if(roomFBC.isFullyLoaded()) {
+                System.out.println("Touch: " + inWorld);
                 PileFBC finalChosen = null;
 
                 for (PileFBC pileFBC : roomFBC) {
                     PileData pile = pileFBC.getData();
 
+                    System.out.println(pile);
                     if (pile.contains(inWorld) && !pile.isChosen()) {
-                        System.out.println("Selecting Pile " + pileFBC);
                         finalChosen = pileFBC;
                         break;
                     }
@@ -128,6 +137,8 @@ public class GameScreen extends Screen implements InputHandler {
         }
     }
 
+
+
     private void selectFBC(PileFBC pile) {
         selectedPileFBC = pile;
         cardSelectionTime = System.nanoTime();
@@ -142,9 +153,8 @@ public class GameScreen extends Screen implements InputHandler {
         inWorld.y = viewport.getWorldHeight() - inWorld.y;
 
         if(selectedPileFBC != null) {
-            System.out.println("DRAG!");
-            selectedPileFBC.getData().setX(inWorld.x - selectedPileFBC.getData().getWidth() / 2f);
-            selectedPileFBC.getData().setY(inWorld.y - selectedPileFBC.getData().getWidth() / 2f);
+            selectedPileFBC.getData().setX(MathUtils.clamp(0, inWorld.x - selectedPileFBC.getData().getWidth() / 2f, viewport.getWorldWidth()));
+            selectedPileFBC.getData().setY(MathUtils.clamp(0, inWorld.y - selectedPileFBC.getData().getWidth() / 2f, viewport.getWorldHeight()));
             selectedPileFBC.getData().setChosenTime(System.nanoTime());
             isDragged = true;
             selectedPileFBC.pushUpdate();
@@ -158,7 +168,6 @@ public class GameScreen extends Screen implements InputHandler {
 
         if(selectedPileFBC != null) {
             float dt = (System.nanoTime() - cardSelectionTime) / 1000000000f;
-            System.out.println("TIME: " + dt);
             if(dt < 0.2f && !isDragged) {
 //                System.out.println("FLIPPING!");
 //                selectedPileFBC.getTopCard().getDisplay().setFlipped(!selectedPileFBC.getTopCard().getDisplay().isFlipped());

@@ -1,7 +1,5 @@
 package com.redsponge.gltest.gl.projection;
 
-import android.opengl.GLES30;
-
 public class FitViewport extends Viewport {
 
     private final float whRatio;
@@ -13,6 +11,7 @@ public class FitViewport extends Viewport {
 
     @Override
     public void apply() {
+        super.apply();
         camera.apply();
     }
 
