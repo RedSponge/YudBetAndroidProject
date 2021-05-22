@@ -1,9 +1,11 @@
 package com.redsponge.gltest.utils;
 
+import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.function.Function;
 
 public class Utils {
 
@@ -37,4 +39,11 @@ public class Utils {
 
     private Utils() {}
 
+    public static <A, B> B[] mapArray(A[] arr, Class<B> outputClass, Function<A, B> mapFunction) {
+        B[] output = (B[]) Array.newInstance(outputClass, arr.length);
+        for (int i = 0; i < arr.length; i++) {
+            output[i] = mapFunction.apply(arr[i]);
+        }
+        return output;
+    }
 }

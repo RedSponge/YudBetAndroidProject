@@ -8,14 +8,17 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.redsponge.gltest.utils.Listeners;
 import com.redsponge.gltest.utils.ChildEventAdapter;
+import com.redsponge.gltest.utils.Utils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class RoomFBC implements Iterable<PileFBC> {
 
@@ -49,15 +52,19 @@ public class RoomFBC implements Iterable<PileFBC> {
         reference.child(Constants.PILES_REFERENCE).addChildEventListener(new ChildEventAdapter() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String lastName) {
-                PileFBC pile = new PileFBC(RoomFBC.this, dataSnapshot.getRef());
-                pileMap.put(dataSnapshot.getKey(), pile);
+                if(!pileMap.containsKey(dataSnapshot.getKey())) {
+                    PileFBC pile = new PileFBC(RoomFBC.this, dataSnapshot.getRef());
+                    pileMap.put(dataSnapshot.getKey(), pile);
+                }
             }
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-                PileFBC pile = Objects.requireNonNull(pileMap.get(dataSnapshot.getKey()));
-                pile.detach();
-                pileMap.remove(dataSnapshot.getKey());
+                if(pileMap.containsKey(dataSnapshot.getKey())) {
+                    PileFBC pile = pileMap.get(dataSnapshot.getKey());
+                    pile.detach();
+                    pileMap.remove(dataSnapshot.getKey());
+                }
             }
         });
 
@@ -123,7 +130,7 @@ public class RoomFBC implements Iterable<PileFBC> {
     /**
      * Upload the card order.
      */
-    private synchronized void pushCardOrder() {
+    private synchronized void pushPileOrder() {
         reference.child(Constants.PILE_ORDER_REFERENCE).setValue(pileOrderList);
     }
 
@@ -133,7 +140,29 @@ public class RoomFBC implements Iterable<PileFBC> {
     public synchronized void pushToFront(PileFBC pile) {
         pileOrderList.remove(pile.getReference().getKey());
         pileOrderList.add(pile.getReference().getKey());
-        pushCardOrder();
+        pushPileOrder();
+    }
+
+    public synchronized PileFBC createPile(float x, float y, long chosenTime, CardFBC... cards) {
+        DatabaseReference newPileReference = reference.child(Constants.PILES_REFERENCE).push();
+        PileData pd = new PileData();
+        pd.setX(x);
+        pd.setY(y);
+        pd.setChosenTime(chosenTime);
+
+        List<String> cardIds = new ArrayList<>(cards.length);
+        for (CardFBC card : cards) {
+            cardIds.add(card.getReference().getKey());
+        }
+        newPileReference.child(Constants.CARDS_REFERENCE).setValue(cardIds);
+        reference.child(Constants.PILE_ORDER_REFERENCE).child(String.valueOf(pileOrderList.size())).setValue(newPileReference.getKey());
+        newPileReference.child(Constants.TRANSFORM_REFERENCE).setValue(pd);
+
+        PileFBC fbc = new PileFBC(this, newPileReference, cardIds);
+        fbc.setDrawnX(x);
+        fbc.setDrawnY(y);
+        pileMap.put(newPileReference.getKey(), fbc);
+        return fbc;
     }
 
     /**

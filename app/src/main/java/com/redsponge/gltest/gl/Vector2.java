@@ -63,4 +63,16 @@ public class Vector2 {
     public String toString() {
         return "(" + x + "," + y + ")";
     }
+
+    public float dst2(Vector2 dragStartPos) {
+        return dst2(dragStartPos.x, dragStartPos.y);
+    }
+
+    private float dst2(float x, float y) {
+        System.out.println(this + " " + (x + "," + y));
+        float dx = this.x - x;
+        float dy = this.y - y;
+        System.out.println("Distance: " + dx + "," + dy);
+        return dx * dx + dy * dy;
+    }
 }

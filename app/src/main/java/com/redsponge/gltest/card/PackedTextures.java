@@ -4,12 +4,13 @@ import android.content.Context;
 import android.util.Log;
 
 import com.redsponge.gltest.R;
+import com.redsponge.gltest.gl.Disposable;
 import com.redsponge.gltest.gl.texture.Texture;
 import com.redsponge.gltest.gl.texture.TextureRegion;
 
 import java.util.HashMap;
 
-public class PackedTextures {
+public class PackedTextures implements Disposable {
 
     private HashMap<String, TextureRegion> textures;
     private Texture packedTexture;
@@ -53,5 +54,10 @@ public class PackedTextures {
             return textures.get("flipped");
         }
         return textures.get(type);
+    }
+
+    @Override
+    public void dispose() {
+        packedTexture.dispose();
     }
 }

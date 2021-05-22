@@ -11,5 +11,8 @@ public class Constants {
     public static final String PILES_REFERENCE = "piles";
     public static final String TRANSFORM_REFERENCE = "transform";
 
+    public static final int CARD_WIDTH = 16 * 2;
+    public static final int CARD_HEIGHT = 24 * 2;
     public static float MAX_CHOICE_TIME = 0.1f;
+    public static float SPLIT_MAX_TIME = 0.05f;
 }

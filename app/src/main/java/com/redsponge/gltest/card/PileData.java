@@ -11,7 +11,7 @@ public class PileData {
     private long chosenTime;
 
     public PileData() {
-        this(0, 0, 16 * 2, 24 * 2);
+        this(0, 0, Constants.CARD_WIDTH, Constants.CARD_HEIGHT);
     }
 
     public PileData(float x, float y, float width, float height) {
@@ -79,6 +79,7 @@ public class PileData {
             && y - height / 2f < point.y && point.y < y + height / 2f;
     }
 
+    @Exclude
     public boolean isChosen() {
         return (System.nanoTime() - chosenTime) / 1000000000f < 0.1f;
     }

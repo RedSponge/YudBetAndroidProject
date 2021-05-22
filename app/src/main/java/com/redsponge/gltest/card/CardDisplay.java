@@ -31,8 +31,6 @@ public class CardDisplay {
 
     public boolean contains(Vector2 point) {
         return true;
-//        return x < point.x && point.x < x + width
-//            && y < point.y && point.y < y + height;
     }
 
     public void set(CardDisplay value) {

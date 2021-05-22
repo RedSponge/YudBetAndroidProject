@@ -10,6 +10,7 @@ import com.redsponge.gltest.utils.Listeners;
 import com.redsponge.gltest.utils.MathUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -25,10 +26,15 @@ public class PileFBC implements Iterable<CardFBC> {
     private PileData drawData;
 
     public PileFBC(RoomFBC roomIn, DatabaseReference ref) {
+        this(roomIn, ref, null);
+    }
+
+    public PileFBC(RoomFBC roomIn, DatabaseReference ref, List<String> initialCards) {
         this.roomIn = roomIn;
         this.cardList = new ArrayList<>();
         this.ref = ref;
         this.drawData = new PileData();
+        if(initialCards != null) cardList.addAll(initialCards);
 
         ref.child(Constants.TRANSFORM_REFERENCE).addValueEventListener(Listeners.value(data -> drawData = data.getValue(PileData.class)));
 
@@ -48,6 +54,13 @@ public class PileFBC implements Iterable<CardFBC> {
 
             }
         });
+    }
+
+    public synchronized CardFBC popTopCard() {
+        CardFBC card = getTopCard();
+        cardList.remove(0);
+        pushUpdate();
+        return card;
     }
 
     public void updateDrawnPosition() {
@@ -72,8 +85,10 @@ public class PileFBC implements Iterable<CardFBC> {
     }
 
     public void pushUpdate() {
-        ref.child(Constants.CARDS_REFERENCE).setValue(cardList);
-        ref.child(Constants.TRANSFORM_REFERENCE).setValue(drawData);
+        synchronized (roomIn) {
+            ref.child(Constants.CARDS_REFERENCE).setValue(cardList);
+            ref.child(Constants.TRANSFORM_REFERENCE).setValue(drawData);
+        }
     }
 
     public float getDrawnX() {
