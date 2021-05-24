@@ -223,4 +223,18 @@ public class RoomFBC implements Iterable<PileFBC> {
     public PileFBC getPile(String key) {
         return pileMap.get(key);
     }
+
+    public synchronized void mergePiles(PileFBC bottomPile, PileFBC topPile) {
+        topPile.getCardOrder().addAll(bottomPile.getCardOrder());
+        topPile.pushUpdate();
+        removePile(bottomPile);
+    }
+
+    private synchronized void removePile(PileFBC pile) {
+        pileMap.remove(pile.getReference().getKey());
+        pileOrderList.remove(pile.getReference().getKey());
+        pile.getReference().removeValue();
+        pile.detach();
+        pushPileOrder();
+    }
 }

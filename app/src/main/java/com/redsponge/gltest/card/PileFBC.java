@@ -10,7 +10,6 @@ import com.redsponge.gltest.utils.Listeners;
 import com.redsponge.gltest.utils.MathUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -23,7 +22,7 @@ public class PileFBC implements Iterable<CardFBC> {
 
     private float drawnX, drawnY, drawnScale;
 
-    private PileData drawData;
+    private PileData data;
 
     public PileFBC(RoomFBC roomIn, DatabaseReference ref) {
         this(roomIn, ref, null);
@@ -33,10 +32,10 @@ public class PileFBC implements Iterable<CardFBC> {
         this.roomIn = roomIn;
         this.cardList = new ArrayList<>();
         this.ref = ref;
-        this.drawData = new PileData();
+        this.data = new PileData();
         if(initialCards != null) cardList.addAll(initialCards);
 
-        ref.child(Constants.TRANSFORM_REFERENCE).addValueEventListener(Listeners.value(data -> drawData = data.getValue(PileData.class)));
+        ref.child(Constants.TRANSFORM_REFERENCE).addValueEventListener(Listeners.value(data -> this.data = data.getValue(PileData.class)));
 
         ref.child(Constants.CARDS_REFERENCE).addValueEventListener(listener = new ValueEventListener() {
             @Override
@@ -64,16 +63,16 @@ public class PileFBC implements Iterable<CardFBC> {
     }
 
     public void updateDrawnPosition() {
-        drawnX = MathUtils.lerp(drawnX, drawData.getX(), 0.2f);
-        drawnY = MathUtils.lerp(drawnY, drawData.getY(), 0.2f);
-        if (Math.abs(drawnX - drawData.getX()) < 0.1f) {
-            drawnX = drawData.getX();
+        drawnX = MathUtils.lerp(drawnX, data.getX(), 0.2f);
+        drawnY = MathUtils.lerp(drawnY, data.getY(), 0.2f);
+        if (Math.abs(drawnX - data.getX()) < 0.1f) {
+            drawnX = data.getX();
         }
-        if (Math.abs(drawnY - drawData.getY()) < 0.1f) {
-            drawnY = drawData.getY();
+        if (Math.abs(drawnY - data.getY()) < 0.1f) {
+            drawnY = data.getY();
         }
 
-        float drawnScaleTarget = drawData.isChosen() ? 1.2f : 1;
+        float drawnScaleTarget = data.isChosen() ? 1.2f : 1;
         drawnScale = MathUtils.lerp(drawnScale, drawnScaleTarget, 0.2f);
         if (Math.abs(drawnScale - drawnScaleTarget) < 0.1f) {
             drawnScale = drawnScaleTarget;
@@ -81,13 +80,13 @@ public class PileFBC implements Iterable<CardFBC> {
     }
 
     public PileData getData() {
-        return drawData;
+        return data;
     }
 
     public void pushUpdate() {
         synchronized (roomIn) {
             ref.child(Constants.CARDS_REFERENCE).setValue(cardList);
-            ref.child(Constants.TRANSFORM_REFERENCE).setValue(drawData);
+            ref.child(Constants.TRANSFORM_REFERENCE).setValue(data);
         }
     }
 
@@ -151,5 +150,14 @@ public class PileFBC implements Iterable<CardFBC> {
 
     public boolean hasTopCard() {
         return cardList.size() > 0 && roomIn.getCard(cardList.get(0)) != null;
+    }
+
+    public CardFBC getCard(int idx) {
+        return roomIn.getCard(cardList.get(idx));
+    }
+
+    public boolean overlaps(PileFBC other) {
+        PileData otherData = other.getData();
+        return false;
     }
 }

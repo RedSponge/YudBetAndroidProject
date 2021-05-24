@@ -69,10 +69,8 @@ public class Vector2 {
     }
 
     private float dst2(float x, float y) {
-        System.out.println(this + " " + (x + "," + y));
         float dx = this.x - x;
         float dy = this.y - y;
-        System.out.println("Distance: " + dx + "," + dy);
         return dx * dx + dy * dy;
     }
 }

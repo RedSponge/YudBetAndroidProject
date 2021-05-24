@@ -17,6 +17,10 @@ public class Utils {
         return s == null || s.trim().isEmpty();
     }
 
+    public static float secondsFrom(long timestamp) {
+        return (System.nanoTime() - timestamp) / 1000000000f;
+    }
+
     public static int tryParseInt(String num, int def) {
         try {
             return Integer.parseInt(num);

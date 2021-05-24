@@ -46,6 +46,10 @@ public class PackedTextures implements Disposable {
         return textures.get(tex);
     }
 
+    public TextureRegion getCard(CardData data) {
+        return getCard(data.getType(), data.isFlipped());
+    }
+
     public TextureRegion getCard(String type, boolean flipped) {
         if(flipped) {
             return textures.get(Constants.TEXTURE_FLIPPED);

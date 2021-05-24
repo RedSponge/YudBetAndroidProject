@@ -18,6 +18,7 @@ import com.redsponge.gltest.gl.input.InputHandler;
 import com.redsponge.gltest.gl.projection.FitViewport;
 import com.redsponge.gltest.gl.texture.TextureRegion;
 import com.redsponge.gltest.utils.MathUtils;
+import com.redsponge.gltest.utils.Utils;
 
 import java.util.List;
 
@@ -84,7 +85,14 @@ public class GameScreen extends Screen implements InputHandler {
                     float width = pile.getData().getWidth() * pile.getDrawnScale();
                     float height = pile.getData().getHeight() * pile.getDrawnScale();
 
-                    batch.draw(cardTex, pile.getDrawnX() - width / 2f, pile.getDrawnY() - height / 2f, width, height);
+                    int pileHeight = Math.min(pile.getCardOrder().size(), Constants.PILE_MAX_DRAWN_HEIGHT);
+
+                    for (int i = pileHeight - 1; i >= 0; i--) {
+                        CardFBC drawnCard = pile.getCard(i);
+                        TextureRegion tex = packedTextures.getCard(drawnCard.getData());
+
+                        batch.draw(tex, pile.getDrawnX() - width / 2f, pile.getDrawnY() - height / 2f - i * 2, width, height);
+                    }
                 }
             }
         }
@@ -135,7 +143,9 @@ public class GameScreen extends Screen implements InputHandler {
             dragStartPos.set(x, y);
             selectFBC(finalChosen);
             roomFBC.pushToFront(finalChosen);
-            hasDoneSplit = false;
+
+            // Prevent splitting if there is only one card by setting the split flag to true
+            hasDoneSplit = finalChosen.getCardOrder().size() <= 1;
         }
     }
 
@@ -147,11 +157,14 @@ public class GameScreen extends Screen implements InputHandler {
         Vector2 inWorld = viewport.unproject(tmpVector.set(x, y), tmpVector);
         inWorld.y = viewport.getWorldHeight() - inWorld.y;
 
-        if(selectedPileFBC.getCardOrder().size() > 1 && !hasDoneSplit) {
-            float deltaTime = (System.nanoTime() - cardSelectionTime) / 1000000000f;
+        if(!hasDoneSplit) {
             float distanceSquared = inWorld.dst2(dragStartPos);
-            System.out.println("Data: " + deltaTime + " " + distanceSquared);
-            if (deltaTime < Constants.SPLIT_MAX_TIME && distanceSquared > 40 * 40) {
+            float deltaTime = Utils.secondsFrom(cardSelectionTime);
+
+            if (deltaTime > Constants.PILE_HOLD_MOVE_TIME) {
+                hasDoneSplit = true;
+            }
+            else if (distanceSquared > Constants.MIN_CARD_SPLIT_DST2) {
                 System.out.println("Split!");
                 CardFBC topCard = selectedPileFBC.popTopCard();
                 PileFBC newPile = roomFBC.createPile(inWorld.x, inWorld.y, System.nanoTime(), topCard);
@@ -177,11 +190,23 @@ public class GameScreen extends Screen implements InputHandler {
 
         float dt = (System.nanoTime() - cardSelectionTime) / 1000000000f;
         float distanceSquared = dragStartPos.dst2(inWorld);
-        System.out.println(dt + " " + hasDoneSplit + " " + distanceSquared);
-        if(dt < 0.2f && !hasDoneSplit && distanceSquared < 20 * 20) {
+        System.out.println("Release!");
+        if(dt < 0.2f && (!hasDoneSplit || selectedPileFBC.getCardOrder().size() == 1) && distanceSquared < 20 * 20) {
             selectedPileFBC.getTopCard().getData().setFlipped(!selectedPileFBC.getTopCard().getData().isFlipped());
             selectedPileFBC.getTopCard().pushUpdate();
+        } else {
+            PileFBC pileToMergeWith = null;
+            for (PileFBC otherPile : roomFBC) {
+                if(otherPile == selectedPileFBC) continue;
+                if(otherPile.getData().getCenter().dst2(selectedPileFBC.getData().getCenter()) < 10 * 10) {
+                    pileToMergeWith = otherPile;
+                }
+            }
+            if(pileToMergeWith != null) {
+                roomFBC.mergePiles(pileToMergeWith, selectedPileFBC);
+            }
         }
+
         selectedPileFBC.getData().setChosenTime(0);
         selectedPileFBC.pushUpdate();
         selectedPileFBC = null;

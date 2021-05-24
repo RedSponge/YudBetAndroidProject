@@ -14,8 +14,15 @@ public class Constants {
     public static final String TEXTURE_FLIPPED = "flipped";
     public static final String TEXTURES_BACKGROUND = "background";
 
+    public static final float PILE_HOLD_MOVE_TIME = 0.3f;
+
     public static final int CARD_WIDTH = 16 * 2;
     public static final int CARD_HEIGHT = 24 * 2;
+    public static final int PILE_MAX_DRAWN_HEIGHT = 5;
+
     public static float MAX_CHOICE_TIME = 0.1f;
     public static float SPLIT_MAX_TIME = 0.05f;
+
+    public static float MIN_CARD_SPLIT_DST = 40;
+    public static float MIN_CARD_SPLIT_DST2 = MIN_CARD_SPLIT_DST * MIN_CARD_SPLIT_DST;
 }

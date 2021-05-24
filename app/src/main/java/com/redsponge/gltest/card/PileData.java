@@ -3,11 +3,14 @@ package com.redsponge.gltest.card;
 import com.google.firebase.database.Exclude;
 import com.redsponge.gltest.gl.Vector2;
 
+import java.util.List;
+
 public class PileData {
 
     private float x, y, width, height;
 
     private long chosenTime;
+    private Vector2 tmpVec;
 
     public PileData() {
         this(0, 0, Constants.CARD_WIDTH, Constants.CARD_HEIGHT);
@@ -19,6 +22,7 @@ public class PileData {
         this.width = width;
         this.height = height;
         this.chosenTime = 0;
+        this.tmpVec = new Vector2();
     }
 
     public float getX() {
@@ -72,8 +76,6 @@ public class PileData {
     }
 
     public boolean contains(Vector2 point) {
-        System.out.println(x - width / 2f + " " + point.x + " " + (x + width / 2f));
-        System.out.println(y - height / 2f + " " + point.y + " " + (y + height / 2f));
         return x - width / 2f < point.x && point.x < x + width / 2f
             && y - height / 2f < point.y && point.y < y + height / 2f;
     }
@@ -81,5 +83,9 @@ public class PileData {
     @Exclude
     public boolean isChosen() {
         return (System.nanoTime() - chosenTime) / 1000000000f < 0.1f;
+    }
+
+    public Vector2 getCenter() {
+        return tmpVec.set(x, y);
     }
 }
