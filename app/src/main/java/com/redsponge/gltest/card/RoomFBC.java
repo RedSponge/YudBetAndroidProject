@@ -50,18 +50,22 @@ public class RoomFBC implements Iterable<PileFBC> {
         reference.child(Constants.PILES_REFERENCE).addChildEventListener(new ChildEventAdapter() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String lastName) {
-                if(!pileMap.containsKey(dataSnapshot.getKey())) {
-                    PileFBC pile = new PileFBC(RoomFBC.this, dataSnapshot.getRef());
-                    pileMap.put(dataSnapshot.getKey(), pile);
+                synchronized (RoomFBC.this) {
+                    if (!pileMap.containsKey(dataSnapshot.getKey())) {
+                        PileFBC pile = new PileFBC(RoomFBC.this, dataSnapshot.getRef());
+                        pileMap.put(dataSnapshot.getKey(), pile);
+                    }
                 }
             }
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-                if(pileMap.containsKey(dataSnapshot.getKey())) {
-                    PileFBC pile = pileMap.get(dataSnapshot.getKey());
-                    pile.detach();
-                    pileMap.remove(dataSnapshot.getKey());
+                synchronized (RoomFBC.this) {
+                    if (pileMap.containsKey(dataSnapshot.getKey())) {
+                        PileFBC pile = pileMap.get(dataSnapshot.getKey());
+                        pile.detach();
+                        pileMap.remove(dataSnapshot.getKey());
+                    }
                 }
             }
         });
@@ -187,12 +191,16 @@ public class RoomFBC implements Iterable<PileFBC> {
     public synchronized boolean isFullyLoaded() {
         synchronized (this) {
             for (String pile : pileOrderList) {
-                List<String> cardOrder = pileMap.get(pile).getCardOrder();
-                for (String card : cardOrder) {
-                    if (!displayConnectorMap.containsKey(card)) {
-                        System.out.println("NOT FULLY LOADED! FAILED ON " + card);
-                        return false;
+                if (pileMap.containsKey(pile)) {
+                    List<String> cardOrder = pileMap.get(pile).getCardOrder();
+                    for (String card : cardOrder) {
+                        if (!displayConnectorMap.containsKey(card)) {
+                            System.out.println("NOT FULLY LOADED! FAILED ON " + card);
+                            return false;
+                        }
                     }
+                } else {
+                    return false;
                 }
             }
             return true;
@@ -254,11 +262,13 @@ public class RoomFBC implements Iterable<PileFBC> {
 
     private void removePile(PileFBC pile) {
         synchronized (this) {
+            System.out.println("Removing Pile");
             pileOrderList.remove(pile.getReference().getKey());
             pileMap.remove(pile.getReference().getKey());
             pile.getReference().removeValue();
             pile.detach();
             pushPileOrder();
+            System.out.println("Removed Pile");
         }
     }
 }
