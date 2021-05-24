@@ -6,19 +6,16 @@ import androidx.annotation.Nullable;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
-import com.redsponge.gltest.utils.Listeners;
 import com.redsponge.gltest.utils.ChildEventAdapter;
-import com.redsponge.gltest.utils.Utils;
+import com.redsponge.gltest.utils.Listeners;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class RoomFBC implements Iterable<PileFBC> {
 
@@ -71,7 +68,7 @@ public class RoomFBC implements Iterable<PileFBC> {
         reference.child(Constants.CARDS_REFERENCE).addChildEventListener(new ChildEventAdapter() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String lastName) {
-                CardDisplay cd = dataSnapshot.getValue(CardDisplay.class);
+                CardData cd = dataSnapshot.getValue(CardData.class);
                 CardFBC cfc = new CardFBC(cd, dataSnapshot.getRef());
                 displayConnectorMap.put(dataSnapshot.getKey(), cfc);
             }
@@ -103,18 +100,18 @@ public class RoomFBC implements Iterable<PileFBC> {
 
     public static void initializeRoom(DatabaseReference reference) {
         List<String> order = new ArrayList<>();
-        List<CardDisplay> displays = new ArrayList<>();
+        List<CardData> displays = new ArrayList<>();
 
         String[] suits = {"spade", "club", "diamond", "heart"};
         for (int i = 0; i < suits.length; i++) {
             for (int j = 1; j <= 13; j++) {
-                displays.add(new CardDisplay(j * 10, i * 10 + 40, suits[i], j));
+                displays.add(new CardData(j * 10, i * 10 + 40, suits[i], j));
             }
         }
 
         DatabaseReference cardsRef = reference.child(Constants.CARDS_REFERENCE);
 
-        for (CardDisplay display : displays) {
+        for (CardData display : displays) {
             DatabaseReference dr = cardsRef.push();
             dr.setValue(display);
             order.add(dr.getKey());

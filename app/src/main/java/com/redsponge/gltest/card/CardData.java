@@ -1,24 +1,16 @@
 package com.redsponge.gltest.card;
 
-import com.google.firebase.database.Exclude;
-import com.redsponge.gltest.gl.Vector2;
-import com.redsponge.gltest.utils.MathUtils;
-
-public class CardDisplay {
+public class CardData {
 
     private boolean isFlipped;
     private String type;
 
-    public CardDisplay() {
+    public CardData() {
         this(0, 0, "spade", 2);
     }
 
-    public CardDisplay(float x, float y, String suit, int number) {
+    public CardData(float x, float y, String suit, int number) {
         this.type = suit + number;
-    }
-
-    public void updateDrawnPos(float delta) {
-
     }
 
     public boolean isFlipped() {
@@ -29,11 +21,7 @@ public class CardDisplay {
         isFlipped = flipped;
     }
 
-    public boolean contains(Vector2 point) {
-        return true;
-    }
-
-    public void set(CardDisplay value) {
+    public void set(CardData value) {
         this.isFlipped = value.isFlipped;
         this.type = value.type;
     }

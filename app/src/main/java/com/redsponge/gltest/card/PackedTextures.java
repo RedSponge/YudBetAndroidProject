@@ -1,7 +1,6 @@
 package com.redsponge.gltest.card;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.redsponge.gltest.R;
 import com.redsponge.gltest.gl.Disposable;
@@ -12,8 +11,8 @@ import java.util.HashMap;
 
 public class PackedTextures implements Disposable {
 
-    private HashMap<String, TextureRegion> textures;
-    private Texture packedTexture;
+    private final HashMap<String, TextureRegion> textures;
+    private final Texture packedTexture;
 
     public PackedTextures(Context ctx) {
         textures = new HashMap<>();
@@ -32,14 +31,13 @@ public class PackedTextures implements Disposable {
                 int x = j * cardTexWidth;
                 int y = i * cardTexHeight + cardStartMarginY;
 
-                Log.i("CardTextures", "card " + suits[i] + (j + 1) + " is in pos [" + x + ',' + y + ']');
                 TextureRegion reg = new TextureRegion(packedTexture, x, y, cardTexWidth, cardTexHeight);
                 textures.put(suits[i] + (j + 1), reg);
             }
         }
 
-        textures.put("flipped", new TextureRegion(packedTexture, 0, cardTexHeight * 4 + cardStartMarginY, cardTexWidth, cardTexHeight));
-        textures.put("background", new TextureRegion(packedTexture, 0, 0, 320, 180));
+        textures.put(Constants.TEXTURE_FLIPPED, new TextureRegion(packedTexture, 0, cardTexHeight * 4 + cardStartMarginY, cardTexWidth, cardTexHeight));
+        textures.put(Constants.TEXTURES_BACKGROUND, new TextureRegion(packedTexture, 0, 0, 320, 180));
     }
 
 
@@ -50,8 +48,7 @@ public class PackedTextures implements Disposable {
 
     public TextureRegion getCard(String type, boolean flipped) {
         if(flipped) {
-            Log.d("CardTextures", textures.get("flipped").toString());
-            return textures.get("flipped");
+            return textures.get(Constants.TEXTURE_FLIPPED);
         }
         return textures.get(type);
     }

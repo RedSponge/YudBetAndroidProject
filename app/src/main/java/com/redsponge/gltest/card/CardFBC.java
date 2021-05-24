@@ -9,18 +9,18 @@ import com.google.firebase.database.ValueEventListener;
 
 public class CardFBC {
 
-    private CardDisplay cardDisplay;
+    private final CardData cardData;
     private final DatabaseReference dbReference;
-    private ValueEventListener listener;
+    private final ValueEventListener fbListener;
 
-    public CardFBC(CardDisplay cardDisplay, DatabaseReference dbReference) {
-        this.cardDisplay = cardDisplay;
+    public CardFBC(CardData cardData, DatabaseReference dbReference) {
+        this.cardData = cardData;
         this.dbReference = dbReference;
-        dbReference.addValueEventListener(listener = new ValueEventListener() {
+        dbReference.addValueEventListener(fbListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                CardDisplay cd = dataSnapshot.getValue(CardDisplay.class);
-                if(cd != null) cardDisplay.set(cd);
+                CardData cd = dataSnapshot.getValue(CardData.class);
+                if(cd != null) cardData.set(cd);
             }
 
             @Override
@@ -33,15 +33,15 @@ public class CardFBC {
     }
 
     public void detach() {
-        dbReference.removeEventListener(listener);
+        dbReference.removeEventListener(fbListener);
     }
 
     public void pushUpdate() {
-        dbReference.setValue(cardDisplay);
+        dbReference.setValue(cardData);
     }
 
-    public CardDisplay getDisplay() {
-        return cardDisplay;
+    public CardData getData() {
+        return cardData;
     }
 
     public DatabaseReference getReference() {

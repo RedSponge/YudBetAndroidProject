@@ -2,7 +2,6 @@ package com.redsponge.gltest.card;
 
 import com.google.firebase.database.Exclude;
 import com.redsponge.gltest.gl.Vector2;
-import com.redsponge.gltest.utils.MathUtils;
 
 public class PileData {
 
