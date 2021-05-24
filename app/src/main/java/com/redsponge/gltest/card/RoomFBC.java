@@ -6,6 +6,7 @@ import androidx.annotation.Nullable;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
 import com.redsponge.gltest.utils.ChildEventAdapter;
 import com.redsponge.gltest.utils.Listeners;
 
@@ -81,21 +82,32 @@ public class RoomFBC implements Iterable<PileFBC> {
             }
         });
 
-        reference.child(Constants.PILE_ORDER_REFERENCE).addChildEventListener(new ChildEventAdapter() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                synchronized (RoomFBC.this) {
-                    pileOrderList.addLast(dataSnapshot.getValue(String.class));
+        reference.child(Constants.PILE_ORDER_REFERENCE).addValueEventListener(Listeners.value(data -> {
+            synchronized (RoomFBC.this) {
+                System.out.println("Began Readding");
+                pileOrderList.clear();
+                for (DataSnapshot child : data.getChildren()) {
+                    pileOrderList.add(child.getValue(String.class));
                 }
+                System.out.println("Finished Readding");
             }
+        }));
 
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-                synchronized (RoomFBC.this) {
-                    pileOrderList.remove(dataSnapshot.getValue(String.class));
-                }
-            }
-        });
+
+//            @Override
+//            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+//                synchronized (RoomFBC.this) {
+//                    pileOrderList.addLast(dataSnapshot.getValue(String.class));
+//                }
+//            }
+//
+//            @Override
+//            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+//                synchronized (RoomFBC.this) {
+//                    pileOrderList.remove(dataSnapshot.getValue(String.class));
+//                }
+//            }
+//        });
     }
 
     public static void initializeRoom(DatabaseReference reference) {
@@ -134,13 +146,15 @@ public class RoomFBC implements Iterable<PileFBC> {
     /**
      * Moves a card to front (moves it to the front of the list and pushes it).
      */
-    public synchronized void pushToFront(PileFBC pile) {
-        pileOrderList.remove(pile.getReference().getKey());
-        pileOrderList.add(pile.getReference().getKey());
-        pushPileOrder();
+    public void pushToFront(PileFBC pile) {
+        synchronized (this) {
+            pileOrderList.remove(pile.getReference().getKey());
+            pileOrderList.add(pile.getReference().getKey());
+            pushPileOrder();
+        }
     }
 
-    public synchronized PileFBC createPile(float x, float y, long chosenTime, CardFBC... cards) {
+    public PileFBC createPile(float x, float y, long chosenTime, CardFBC... cards) {
         DatabaseReference newPileReference = reference.child(Constants.PILES_REFERENCE).push();
         PileData pd = new PileData();
         pd.setX(x);
@@ -152,13 +166,17 @@ public class RoomFBC implements Iterable<PileFBC> {
             cardIds.add(card.getReference().getKey());
         }
         newPileReference.child(Constants.CARDS_REFERENCE).setValue(cardIds);
-        reference.child(Constants.PILE_ORDER_REFERENCE).child(String.valueOf(pileOrderList.size())).setValue(newPileReference.getKey());
         newPileReference.child(Constants.TRANSFORM_REFERENCE).setValue(pd);
 
         PileFBC fbc = new PileFBC(this, newPileReference, cardIds);
         fbc.setDrawnX(x);
         fbc.setDrawnY(y);
-        pileMap.put(newPileReference.getKey(), fbc);
+
+        synchronized (this) {
+            pileMap.put(newPileReference.getKey(), fbc);
+            pileOrderList.add(newPileReference.getKey());
+            pushPileOrder();
+        }
         return fbc;
     }
 
@@ -167,16 +185,18 @@ public class RoomFBC implements Iterable<PileFBC> {
      * @return Are the database and client synchronized?
      */
     public synchronized boolean isFullyLoaded() {
-        for (String pile : pileOrderList) {
-            List<String> cardOrder = pileMap.get(pile).getCardOrder();
-            for (String card : cardOrder) {
-                if(!displayConnectorMap.containsKey(card)) {
-                    System.out.println("NOT FULLY LOADED! FAILED ON " + card);
-                    return false;
+        synchronized (this) {
+            for (String pile : pileOrderList) {
+                List<String> cardOrder = pileMap.get(pile).getCardOrder();
+                for (String card : cardOrder) {
+                    if (!displayConnectorMap.containsKey(card)) {
+                        System.out.println("NOT FULLY LOADED! FAILED ON " + card);
+                        return false;
+                    }
                 }
             }
+            return true;
         }
-        return true;
     }
 
     /**
@@ -224,17 +244,21 @@ public class RoomFBC implements Iterable<PileFBC> {
         return pileMap.get(key);
     }
 
-    public synchronized void mergePiles(PileFBC bottomPile, PileFBC topPile) {
-        topPile.getCardOrder().addAll(bottomPile.getCardOrder());
-        topPile.pushUpdate();
-        removePile(bottomPile);
+    public void mergePiles(PileFBC bottomPile, PileFBC topPile) {
+        synchronized (this) {
+            topPile.getCardOrder().addAll(bottomPile.getCardOrder());
+            topPile.pushUpdate();
+            removePile(bottomPile);
+        }
     }
 
-    private synchronized void removePile(PileFBC pile) {
-        pileMap.remove(pile.getReference().getKey());
-        pileOrderList.remove(pile.getReference().getKey());
-        pile.getReference().removeValue();
-        pile.detach();
-        pushPileOrder();
+    private void removePile(PileFBC pile) {
+        synchronized (this) {
+            pileOrderList.remove(pile.getReference().getKey());
+            pileMap.remove(pile.getReference().getKey());
+            pile.getReference().removeValue();
+            pile.detach();
+            pushPileOrder();
+        }
     }
 }
