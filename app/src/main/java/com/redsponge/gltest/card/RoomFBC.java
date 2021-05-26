@@ -37,6 +37,8 @@ public class RoomFBC implements Iterable<PileFBC> {
         this.pileOrderList = new LinkedList<>();
         this.pileMap = new HashMap<>();
 
+
+
         reference.child(Constants.MAX_PLAYERS_REFERENCE).addListenerForSingleValueEvent(Listeners.value(data -> maxPlayers = data.getValue(Integer.class)));
         initializeReferenceListeners();
     }

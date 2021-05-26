@@ -7,6 +7,14 @@ import android.opengl.GLUtils;
 
 import com.redsponge.gltest.gl.Disposable;
 
+import java.nio.IntBuffer;
+
+import static android.opengl.GLES20.GL_CLAMP_TO_EDGE;
+import static android.opengl.GLES20.GL_RGBA;
+import static android.opengl.GLES20.GL_TEXTURE_WRAP_S;
+import static android.opengl.GLES20.GL_TEXTURE_WRAP_T;
+import static android.opengl.GLES20.GL_UNSIGNED_BYTE;
+import static android.opengl.GLES20.glTexImage2D;
 import static android.opengl.GLES20.glTexParameteri;
 import static android.opengl.GLES30.GL_LINEAR;
 import static android.opengl.GLES30.GL_NEAREST;
@@ -32,13 +40,13 @@ public class Texture implements Disposable {
         width = bitmap.getWidth();
         height = bitmap.getHeight();
 
-        int[] pixelArr = new int[width * height];
-        bitmap.getPixels(pixelArr, 0, width, 0, 0, width, height);
-
         glBindTexture(GL_TEXTURE_2D, texId);
 
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         GLUtils.texImage2D(GL_TEXTURE_2D, 0, bitmap, 0);
 

@@ -31,4 +31,6 @@ public class Constants {
 
     public static float MIN_CARD_SPLIT_DST = 40;
     public static float MIN_CARD_SPLIT_DST2 = MIN_CARD_SPLIT_DST * MIN_CARD_SPLIT_DST;
+
+    public static final int TOGGLE_HAND_EVENT = 1;
 }

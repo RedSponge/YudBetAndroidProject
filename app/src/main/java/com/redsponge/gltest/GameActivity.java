@@ -3,25 +3,25 @@ package com.redsponge.gltest;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.ContextMenu;
 import android.view.View;
 
 import androidx.annotation.Nullable;
 
 import com.redsponge.gltest.card.Constants;
-import com.redsponge.gltest.gl.GLView;
+import com.redsponge.gltest.gl.GLGameView;
 import com.redsponge.gltest.gl.RawReader;
 import com.redsponge.gltest.glscreen.GameScreen;
 
 public class GameActivity extends Activity {
 
-    private GLView view;
+    private GLGameView glView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         hideSystemUI();
 
+        setContentView(R.layout.activity_game);
         Log.i("GameActivity", "Wassup!");
 //        decorView.setOnSystemUiVisibilityChangeListener(visibility -> {
 //            Log.i("GameActivity", "Is Fullscreen Now: " + ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0));
@@ -30,9 +30,8 @@ public class GameActivity extends Activity {
 
         String roomName = getIntent().getStringExtra(Constants.ROOM_NAME_EXTRA);
 
-        view = new GLView(this);
-        view.setPendingScreen(new GameScreen(this, roomName));
-        setContentView(view);
+        glView = findViewById(R.id.glView);
+        glView.setPendingScreen(new GameScreen(this, roomName));
     }
 
     private void hideSystemUI() {
@@ -53,4 +52,7 @@ public class GameActivity extends Activity {
               | View.SYSTEM_UI_FLAG_FULLSCREEN);
     }
 
+    public void toggleHand(View view) {
+        glView.getScreen().onAndroidEvent(Constants.TOGGLE_HAND_EVENT);
+    }
 }

@@ -11,17 +11,17 @@ import android.view.View;
 import com.redsponge.gltest.gl.input.InputHandler;
 import com.redsponge.gltest.glscreen.Screen;
 
-public class GLView extends GLSurfaceView {
+public class GLGameView extends GLSurfaceView {
 
     private GLRenderer renderer;
     private InputHandler inputHandler;
 
-    public GLView(Context context) {
+    public GLGameView(Context context) {
         super(context);
         init();
     }
 
-    public GLView(Context context, AttributeSet attrs) {
+    public GLGameView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
     }

@@ -37,6 +37,7 @@ public class GameScreen extends Screen implements InputHandler {
 
     private final String roomName;
     private boolean hasDoneSplit;
+    private boolean isHandUp;
 
     public GameScreen(Context context, String roomName) {
         super(context);
@@ -96,7 +97,7 @@ public class GameScreen extends Screen implements InputHandler {
                 }
             }
         }
-        batch.draw(packedTextures.getTexture(Constants.TEXTURE_HAND_BACKGROUND), 0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
+        batch.draw(packedTextures.getTexture(Constants.TEXTURE_HAND_BACKGROUND), 0, -100, viewport.getWorldWidth(), viewport.getWorldHeight());
         batch.end();
     }
 
@@ -211,5 +212,16 @@ public class GameScreen extends Screen implements InputHandler {
         selectedPileFBC.getData().setChosenTime(0);
         selectedPileFBC.pushUpdate();
         selectedPileFBC = null;
+    }
+
+    @Override
+    public void onAndroidEvent(int eventId) {
+        if(eventId == Constants.TOGGLE_HAND_EVENT) {
+            toggleHand();
+        }
+    }
+
+    private void toggleHand() {
+        isHandUp = !isHandUp; // TODO: Actually animate hand.
     }
 }

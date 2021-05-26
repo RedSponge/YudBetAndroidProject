@@ -139,7 +139,7 @@ public class TextureBatch implements Disposable {
         int count = 6 * numDrawnVerts / 4;
 
         glEnable(GL_BLEND);
-        glBlendFunc(GL_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
