@@ -4,24 +4,21 @@ import com.google.firebase.database.Exclude;
 import com.google.firebase.database.PropertyName;
 import com.redsponge.gltest.card.Constants;
 
+import java.util.Collection;
+import java.util.List;
+
 public class ListRoomItem {
 
-    @Exclude
     private String name;
-
-    @PropertyName(Constants.MAX_PLAYERS_REFERENCE)
     private int maxPlayers;
-
-    @PropertyName("password")
     private String hashedPassword;
+    private int playerCount;
 
-    public ListRoomItem() {
-    }
-
-    public ListRoomItem(String name, int maxPlayers, String hashedPassword) {
+    public ListRoomItem(String name, int maxPlayers, String hashedPassword, int playerCount) {
         this.name = name;
         this.maxPlayers = maxPlayers;
         this.hashedPassword = hashedPassword;
+        this.playerCount = playerCount;
     }
 
     public String getName() {
@@ -32,28 +29,41 @@ public class ListRoomItem {
         this.name = name;
     }
 
-    @PropertyName(Constants.MAX_PLAYERS_REFERENCE)
     public int getMaxPlayers() {
         return maxPlayers;
     }
 
-    @PropertyName(Constants.MAX_PLAYERS_REFERENCE)
     public void setMaxPlayers(int maxPlayers) {
         this.maxPlayers = maxPlayers;
     }
 
-    @PropertyName("password")
     public String getHashedPassword() {
         return hashedPassword;
     }
 
-    @PropertyName("password")
     public void setHashedPassword(String hashedPassword) {
         this.hashedPassword = hashedPassword;
     }
 
-    @Exclude
     public boolean isLocked() {
         return !hashedPassword.isEmpty();
+    }
+
+    public int getPlayerCount() {
+        return playerCount;
+    }
+
+    public void setPlayerCount(int playerCount) {
+        this.playerCount = playerCount;
+    }
+
+    @Override
+    public String toString() {
+        return "ListRoomItem{" +
+                "name='" + name + '\'' +
+                ", maxPlayers=" + maxPlayers +
+                ", hashedPassword='" + hashedPassword + '\'' +
+                ", playerCount=" + playerCount +
+                '}';
     }
 }

@@ -68,7 +68,7 @@ public class GameScreen extends Screen implements InputHandler {
         batch.setProjectionMatrix(viewport.getCamera().getCombinedMatrix());
 
         batch.begin();
-        batch.draw(packedTextures.getTexture(Constants.TEXTURES_BACKGROUND), 0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
+        batch.draw(packedTextures.getTexture(Constants.TEXTURE_BACKGROUND), 0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
 
         synchronized (roomFBC) {
             if(roomFBC.isFullyLoaded()) {
@@ -96,6 +96,7 @@ public class GameScreen extends Screen implements InputHandler {
                 }
             }
         }
+        batch.draw(packedTextures.getTexture(Constants.TEXTURE_HAND_BACKGROUND), 0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
         batch.end();
     }
 

@@ -47,4 +47,37 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@drawable/outline_add_white_20" />
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabSettings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="8dp"
+        android:clickable="true"
+        android:onClick="toggleSettingsFab"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+
+        app:rippleColor="@color/white"
+        app:srcCompat="@drawable/ic_baseline_settings_24" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabLogout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="#009688"
+
+        app:fabSize="mini"
+
+        android:clickable="true"
+        app:tint="@color/white"
+
+        app:layout_constraintBottom_toBottomOf="@+id/fabSettings"
+        app:layout_constraintEnd_toEndOf="@+id/fabSettings"
+        app:layout_constraintStart_toStartOf="@+id/fabSettings"
+        app:layout_constraintTop_toTopOf="@+id/fabSettings"
+        app:rippleColor="#FFFFFF"
+        android:onClick="logout"
+        app:srcCompat="@drawable/outline_logout_black_36" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -21,7 +21,7 @@ public class Texture implements Disposable {
 
     private final int texId;
 
-    private float width, height;
+    private int width, height;
 
     public Texture(Resources res, int resource) {
         int[] receivers = new int[1];
@@ -31,6 +31,9 @@ public class Texture implements Disposable {
         Bitmap bitmap = BitmapFactory.decodeResource(res, resource);
         width = bitmap.getWidth();
         height = bitmap.getHeight();
+
+        int[] pixelArr = new int[width * height];
+        bitmap.getPixels(pixelArr, 0, width, 0, 0, width, height);
 
         glBindTexture(GL_TEXTURE_2D, texId);
 

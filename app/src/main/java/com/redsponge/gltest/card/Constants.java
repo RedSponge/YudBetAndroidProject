@@ -4,7 +4,7 @@ public class Constants {
 
     public static final String CARDS_REFERENCE = "cards";
     public static final String PILE_ORDER_REFERENCE = "pile_order";
-    public static final String MAX_PLAYERS_REFERENCE = "max_players";
+    public static final String MAX_PLAYERS_REFERENCE = "maxPlayers";
     public static final String ROOMS_REFERENCE = "rooms";
     public static final String PASSWORD_REFERENCE = "password";
     public static final String ROOM_NAME_EXTRA = "room_name";
@@ -12,7 +12,13 @@ public class Constants {
     public static final String TRANSFORM_REFERENCE = "transform";
 
     public static final String TEXTURE_FLIPPED = "flipped";
-    public static final String TEXTURES_BACKGROUND = "background";
+    public static final String TEXTURE_BACKGROUND = "background";
+    public static final String TEXTURE_HAND_BACKGROUND = "hand_background";
+
+    public static final String USERS_REFERENCE = "users";
+    public static final String ROOM_PLAYERS_REFERENCE = "players";
+    public static final String PLAYER_CARDS_REFERENCE = "cards";
+
 
     public static final float PILE_HOLD_MOVE_TIME = 0.3f;
 

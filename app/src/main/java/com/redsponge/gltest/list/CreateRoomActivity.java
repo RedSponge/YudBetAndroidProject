@@ -77,7 +77,7 @@ public class CreateRoomActivity extends Activity {
                     return;
                 }
 
-                ListRoomItem roomItem = new ListRoomItem(roomName, maxPlayers, Utils.isBlankOrNull(password) ? "" : Utils.hashPassword(password));
+                ListRoomItem roomItem = new ListRoomItem(roomName, maxPlayers, Utils.isBlankOrNull(password) ? "" : Utils.hashPassword(password), 0);
                 db.getReference().child(Constants.ROOMS_REFERENCE).child(roomName).setValue(roomItem);
                 RoomFBC.initializeRoom(db.getReference().child(Constants.ROOMS_REFERENCE).child(roomName));
                 Toast.makeText(CreateRoomActivity.this, "Successfully Created Room!", Toast.LENGTH_SHORT).show();

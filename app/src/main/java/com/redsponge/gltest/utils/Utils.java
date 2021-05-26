@@ -1,5 +1,8 @@
 package com.redsponge.gltest.utils;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+
 import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -49,5 +52,9 @@ public class Utils {
             output[i] = mapFunction.apply(arr[i]);
         }
         return output;
+    }
+
+    public static <T> T readReferenceIfExists(DataSnapshot ref, Class<T> refType, T otherwise) {
+        return ref.exists() ? ref.getValue(refType) : otherwise;
     }
 }

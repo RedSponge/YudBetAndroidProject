@@ -6,7 +6,6 @@ import androidx.annotation.Nullable;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.ValueEventListener;
 import com.redsponge.gltest.utils.ChildEventAdapter;
 import com.redsponge.gltest.utils.Listeners;
 
@@ -23,7 +22,7 @@ public class RoomFBC implements Iterable<PileFBC> {
     private final DatabaseReference reference;
 
     private final Map<String, CardFBC> displayConnectorMap;
-    private final LinkedList<String> pileOrderList;
+    private LinkedList<String> pileOrderList;
 
     private final Map<String, PileFBC> pileMap;
 
@@ -87,31 +86,16 @@ public class RoomFBC implements Iterable<PileFBC> {
         });
 
         reference.child(Constants.PILE_ORDER_REFERENCE).addValueEventListener(Listeners.value(data -> {
-            synchronized (RoomFBC.this) {
-                System.out.println("Began Readding");
-                pileOrderList.clear();
-                for (DataSnapshot child : data.getChildren()) {
-                    pileOrderList.add(child.getValue(String.class));
+            LinkedList<String> newOrder = new LinkedList<>();
+            for (DataSnapshot child : data.getChildren()) {
+                newOrder.add(child.getValue(String.class));
+            }
+            if(!newOrder.equals(pileOrderList)) {
+                synchronized (RoomFBC.this) {
+                    pileOrderList = newOrder;
                 }
-                System.out.println("Finished Readding");
             }
         }));
-
-
-//            @Override
-//            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-//                synchronized (RoomFBC.this) {
-//                    pileOrderList.addLast(dataSnapshot.getValue(String.class));
-//                }
-//            }
-//
-//            @Override
-//            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-//                synchronized (RoomFBC.this) {
-//                    pileOrderList.remove(dataSnapshot.getValue(String.class));
-//                }
-//            }
-//        });
     }
 
     public static void initializeRoom(DatabaseReference reference) {

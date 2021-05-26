@@ -37,7 +37,8 @@ public class PackedTextures implements Disposable {
         }
 
         textures.put(Constants.TEXTURE_FLIPPED, new TextureRegion(packedTexture, 0, cardTexHeight * 4 + cardStartMarginY, cardTexWidth, cardTexHeight));
-        textures.put(Constants.TEXTURES_BACKGROUND, new TextureRegion(packedTexture, 0, 0, 320, 180));
+        textures.put(Constants.TEXTURE_BACKGROUND, new TextureRegion(packedTexture, 0, 0, 320, 180));
+        textures.put(Constants.TEXTURE_HAND_BACKGROUND, new TextureRegion(packedTexture, 320, 0, 320, 180));
     }
 
 

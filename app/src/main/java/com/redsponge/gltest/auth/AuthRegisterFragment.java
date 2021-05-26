@@ -22,7 +22,10 @@ import com.google.firebase.FirebaseExceptionMapper;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.redsponge.gltest.R;
+import com.redsponge.gltest.card.Constants;
 import com.redsponge.gltest.utils.Utils;
 
 import java.util.Objects;
@@ -38,9 +41,11 @@ public class AuthRegisterFragment extends Fragment {
     private Animation shakeAnimation;
 
     private final FirebaseAuth auth;
+    private final FirebaseDatabase db;
 
     public AuthRegisterFragment() {
         auth = FirebaseAuth.getInstance();
+        db = FirebaseDatabase.getInstance();
     }
 
     @Nullable
@@ -93,7 +98,9 @@ public class AuthRegisterFragment extends Fragment {
                 Optional<String> emailError = Optional.empty();
                 Optional<String> passwordError = Optional.empty();
 
-                if(task.isSuccessful()) {
+                if(task.isSuccessful() && auth.getCurrentUser() != null) {
+                    LoggedUser user = new LoggedUser("TMP USER", auth.getCurrentUser().getUid(), auth.getCurrentUser().getEmail());
+                    db.getReference(Constants.USERS_REFERENCE).child(user.getUid()).setValue(user);
                     ((AuthActivity) Objects.requireNonNull(getActivity())).tryLogIn();
                 } else {
                     final Exception e = task.getException();

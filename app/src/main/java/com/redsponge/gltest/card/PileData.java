@@ -85,6 +85,7 @@ public class PileData {
         return (System.nanoTime() - chosenTime) / 1000000000f < 0.1f;
     }
 
+    @Exclude
     public Vector2 getCenter() {
         return tmpVec.set(x, y);
     }
