@@ -10,12 +10,12 @@ import com.google.firebase.database.DatabaseError;
 public class ChildEventAdapter implements ChildEventListener {
 
     @Override
-    public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+    public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String prevChildName) {
 
     }
 
     @Override
-    public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+    public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String prevChildName) {
 
     }
 
@@ -25,7 +25,7 @@ public class ChildEventAdapter implements ChildEventListener {
     }
 
     @Override
-    public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+    public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String prevChildName) {
 
     }
 
