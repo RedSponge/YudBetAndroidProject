@@ -14,6 +14,14 @@ public class PileData {
         this(0, 0, Constants.CARD_WIDTH, Constants.CARD_HEIGHT);
     }
 
+    public PileData(float x, float y, long chosenTime) {
+        this.x = x;
+        this.y = y;
+        this.chosenTime = chosenTime;
+        this.width = Constants.CARD_WIDTH;
+        this.height = Constants.CARD_HEIGHT;
+    }
+
     public PileData(float x, float y, float width, float height) {
         this.x = x;
         this.y = y;

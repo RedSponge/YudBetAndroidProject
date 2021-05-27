@@ -19,6 +19,10 @@ public class Constants {
     public static final String ROOM_PLAYERS_REFERENCE = "players";
     public static final String PLAYER_CARDS_REFERENCE = "cards";
 
+    public static final String[] SUITS = new String[] {"spade", "heart", "diamond", "club"};
+
+    public static final int CARD_MIN = 1;
+    public static final int CARD_MAX = 13;
 
     public static final float PILE_HOLD_MOVE_TIME = 0.3f;
 

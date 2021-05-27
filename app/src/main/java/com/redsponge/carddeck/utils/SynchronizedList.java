@@ -6,9 +6,10 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
-public class SynchronizedList<T> {
+public class SynchronizedList<T> implements Iterable<T> {
 
     private final DatabaseReference dbRef;
     private final List<Pair<String, T>> internalList; // Pairs of <FB Key, Value>
@@ -37,6 +38,21 @@ public class SynchronizedList<T> {
 
     public int indexOf(String key) {
         return positionFor(key);
+    }
+
+    public T get(int idx) {
+        if(0 <= idx && idx < internalList.size()) {
+            return internalList.get(idx).second;
+        }
+        throw new RuntimeException("Invalid index " + idx);
+    }
+
+    public T get(String key) {
+        return get(indexOf(key));
+    }
+
+    public int size() {
+        return internalList.size();
     }
 
     private void sync() {
@@ -97,4 +113,21 @@ public class SynchronizedList<T> {
         return -1;
     }
 
+    @NonNull
+    @Override
+    public Iterator<T> iterator() {
+        return new Iterator<T>() {
+            private int i = 0;
+
+            @Override
+            public boolean hasNext() {
+                return i < internalList.size();
+            }
+
+            @Override
+            public T next() {
+                return internalList.get(i++).second;
+            }
+        };
+    }
 }

@@ -6,11 +6,16 @@ public class CardData {
     private String type;
 
     public CardData() {
-        this(0, 0, "spade", 2);
+        this(false, "spade", 2);
     }
 
-    public CardData(float x, float y, String suit, int number) {
-        this.type = suit + number;
+    public CardData(boolean isFlipped, String type) {
+        this.isFlipped = isFlipped;
+        this.type = type;
+    }
+
+    public CardData(boolean isFlipped, String suit, int number) {
+        this(isFlipped, suit + number);
     }
 
     public boolean isFlipped() {
@@ -21,16 +26,23 @@ public class CardData {
         isFlipped = flipped;
     }
 
-    public void set(CardData value) {
-        this.isFlipped = value.isFlipped;
-        this.type = value.type;
-    }
-
     public String getType() {
         return type;
     }
 
     public void setType(String type) {
         this.type = type;
+    }
+
+
+    public CardData set(CardData value) {
+        this.isFlipped = value.isFlipped;
+        this.type = value.type;
+        return this;
+    }
+
+
+    public CardData cpy() {
+        return new CardData(isFlipped, type);
     }
 }
