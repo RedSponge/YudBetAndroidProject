@@ -6,7 +6,7 @@ public class Constants {
     public static final String PILE_ORDER_REFERENCE = "pile_order";
     public static final String MAX_PLAYERS_REFERENCE = "maxPlayers";
     public static final String ROOMS_REFERENCE = "rooms";
-    public static final String PASSWORD_REFERENCE = "password";
+    public static final String PASSWORD_REFERENCE = "hashedPassword";
     public static final String ROOM_NAME_EXTRA = "room_name";
     public static final String PILES_REFERENCE = "piles";
     public static final String TRANSFORM_REFERENCE = "transform";
