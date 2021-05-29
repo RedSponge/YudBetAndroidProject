@@ -178,8 +178,6 @@ public class TextureBatch implements Disposable {
         texCoordsAttribLocation = shader.getAttributeLocation("a_texCoords");
         colorAttribLocation = shader.getAttributeLocation("a_color");
 
-        System.out.println(posAttribLocation + " " + texCoordsAttribLocation + " " + colorAttribLocation);
-
         glVertexAttribPointer(posAttribLocation, 2, GL_FLOAT, false, TexBatchVertex.getSize(), 0);
         glEnableVertexAttribArray(posAttribLocation);
 

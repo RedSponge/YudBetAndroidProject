@@ -1,4 +1,4 @@
-package com.redsponge.carddeck.list;
+package com.redsponge.carddeck.room;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,7 +12,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.redsponge.carddeck.R;
-import com.redsponge.carddeck.room.ListRoomItem;
 
 import java.util.ArrayList;
 import java.util.List;

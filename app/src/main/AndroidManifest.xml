@@ -23,8 +23,8 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name="com.redsponge.carddeck.list.RoomListActivity"/>
-        <activity android:name="com.redsponge.carddeck.list.CreateRoomActivity"/>
+        <activity android:name="com.redsponge.carddeck.room.RoomListActivity"/>
+        <activity android:name="com.redsponge.carddeck.room.CreateRoomActivity"/>
     </application>
 
 </manifest>
