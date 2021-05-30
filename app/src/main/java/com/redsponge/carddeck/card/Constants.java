@@ -19,18 +19,26 @@ public class Constants {
     public static final String ROOM_PLAYERS_REFERENCE = "players";
     public static final String PLAYER_CARDS_REFERENCE = "cards";
 
+    public static final String[] SUITS = new String[] {"spade", "heart", "diamond", "club"};
 
-    public static final float PILE_HOLD_MOVE_TIME = 0.3f;
+    public static final int CARD_MIN = 1;
+    public static final int CARD_MAX = 13;
+
+    public static final float PILE_HOLD_MOVE_TIME = 0.2f;
 
     public static final int CARD_WIDTH = 16 * 2;
     public static final int CARD_HEIGHT = 24 * 2;
     public static final int PILE_MAX_DRAWN_HEIGHT = 5;
+    ;
 
-    public static float MAX_CHOICE_TIME = 0.1f;
-    public static float SPLIT_MAX_TIME = 0.05f;
+    public static final float MAX_CHOICE_TIME = 0.1f;
+    public static final float SPLIT_MAX_TIME = 0.05f;
 
-    public static float MIN_CARD_SPLIT_DST = 40;
-    public static float MIN_CARD_SPLIT_DST2 = MIN_CARD_SPLIT_DST * MIN_CARD_SPLIT_DST;
+    public static final float MIN_CARD_SPLIT_DST = 40;
+    public static final float MIN_CARD_SPLIT_DST2 = MIN_CARD_SPLIT_DST * MIN_CARD_SPLIT_DST;
+
+    public static final float MIN_PILE_MERGE_DST = 20;
+    public static final float MIN_PILE_MERGE_DST2 = MIN_PILE_MERGE_DST * MIN_PILE_MERGE_DST;
 
     public static final int TOGGLE_HAND_EVENT = 1;
     public static final int SHAKE_EVENT = 2;

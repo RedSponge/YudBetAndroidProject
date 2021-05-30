@@ -1,68 +1,41 @@
 package com.redsponge.carddeck.card;
 
-import androidx.annotation.NonNull;
-
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.ValueEventListener;
 import com.redsponge.carddeck.utils.Listeners;
 import com.redsponge.carddeck.utils.MathUtils;
+import com.redsponge.carddeck.utils.SynchronizedList;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-public class PileFBC implements Iterable<CardFBC> {
+public class PileFBC {
 
     private final RoomFBC roomIn;
-    private final List<String> cardList;
-    private final DatabaseReference ref;
-    private final ValueEventListener listener;
-
+    private SynchronizedList<String> cardList;
     private float drawnX, drawnY, drawnScale;
+
+    private final DatabaseReference ref;
 
     private PileData data;
 
     public PileFBC(RoomFBC roomIn, DatabaseReference ref) {
-        this(roomIn, ref, null);
-    }
-
-    public PileFBC(RoomFBC roomIn, DatabaseReference ref, List<String> initialCards) {
         this.roomIn = roomIn;
-        this.cardList = new ArrayList<>();
-        this.ref = ref;
+        this.cardList = new SynchronizedList<>(ref.child(Constants.CARDS_REFERENCE), String.class);
         this.data = new PileData();
-        if(initialCards != null) cardList.addAll(initialCards);
 
-        ref.child(Constants.TRANSFORM_REFERENCE).addValueEventListener(Listeners.value(data -> this.data = data.getValue(PileData.class)));
+        this.ref = ref;
 
-        ref.child(Constants.CARDS_REFERENCE).addValueEventListener(listener = new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                synchronized (roomIn) {
-                    cardList.clear();
-                    for (DataSnapshot child : dataSnapshot.getChildren()) {
-                        cardList.add(child.getValue(String.class));
-                    }
-                }
-            }
+        this.drawnScale = 1;
+        this.drawnX = -100;
+        this.drawnY = -100;
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-    }
-
-    public synchronized CardFBC popTopCard() {
-        CardFBC card = getTopCard();
-        cardList.remove(0);
-        pushUpdate();
-        return card;
+        ref.child(Constants.TRANSFORM_REFERENCE).addValueEventListener(Listeners.value(data -> {
+            this.data = data.getValue(PileData.class);
+            if(drawnX < 0) drawnX = this.data.getX();
+            if(drawnY < 0) drawnY = this.data.getY();
+        }));
     }
 
     public void updateDrawnPosition() {
+        if(drawnX < 0 || drawnY < 0) return;
+
         drawnX = MathUtils.lerp(drawnX, data.getX(), 0.2f);
         drawnY = MathUtils.lerp(drawnY, data.getY(), 0.2f);
         if (Math.abs(drawnX - data.getX()) < 0.1f) {
@@ -79,15 +52,36 @@ public class PileFBC implements Iterable<CardFBC> {
         }
     }
 
+    public void setData(PileData data) {
+        ref.child(Constants.TRANSFORM_REFERENCE).setValue(data);
+    }
+
     public PileData getData() {
         return data;
     }
 
-    public void pushUpdate() {
-        synchronized (roomIn) {
-            ref.child(Constants.CARDS_REFERENCE).setValue(cardList);
-            ref.child(Constants.TRANSFORM_REFERENCE).setValue(data);
-        }
+    public void setChosenTime(long chosenTime) {
+        ref.child(Constants.TRANSFORM_REFERENCE).child("chosenTime").setValue(chosenTime);
+    }
+
+    public long getChosenTime() {
+        return data.getChosenTime();
+    }
+
+    public void setX(float x) {
+        ref.child(Constants.TRANSFORM_REFERENCE).child("x").setValue(x);
+    }
+
+    public float getX() {
+        return data.getX();
+    }
+
+    public void setY(float y) {
+        ref.child(Constants.TRANSFORM_REFERENCE).child("y").setValue(y);
+    }
+
+    public float getY() {
+        return data.getY();
     }
 
     public float getDrawnX() {
@@ -114,50 +108,36 @@ public class PileFBC implements Iterable<CardFBC> {
         this.drawnScale = drawnScale;
     }
 
-    @NonNull
-    @Override
-    public Iterator<CardFBC> iterator() {
-        return new Iterator<CardFBC>() {
-            int i = 0;
-
-            @Override
-            public boolean hasNext() {
-                return i < cardList.size();
-            }
-
-            @Override
-            public CardFBC next() {
-                return roomIn.getCard(cardList.get(i++));
-            }
-        };
-    }
-
-    public CardFBC getTopCard() {
-        return roomIn.getCard(cardList.get(0));
-    }
-
-    public void detach() {
-        ref.removeEventListener(listener);
-    }
-
-    public List<String> getCardOrder() {
-        return cardList;
-    }
-
     public DatabaseReference getReference() {
         return ref;
-    }
-
-    public boolean hasTopCard() {
-        return cardList.size() > 0 && roomIn.getCard(cardList.get(0)) != null;
-    }
-
-    public CardFBC getCard(int idx) {
-        return roomIn.getCard(cardList.get(idx));
     }
 
     public boolean overlaps(PileFBC other) {
         PileData otherData = other.getData();
         return false;
+    }
+
+    public boolean hasTopCard() {
+        return cardList.size() > 0;
+    }
+
+    public int getSize() {
+        return cardList.size();
+    }
+
+    public String getCardId(int idx) {
+        return cardList.get(idx);
+    }
+
+    public CardData getCard(int idx) {
+        return roomIn.getCard(cardList.get(idx));
+    }
+
+    public SynchronizedList<String> getCardList() {
+        return cardList;
+    }
+
+    public void delete() {
+        ref.removeValue();
     }
 }

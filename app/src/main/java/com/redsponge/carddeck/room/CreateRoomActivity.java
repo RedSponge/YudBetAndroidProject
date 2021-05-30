@@ -13,12 +13,18 @@ import androidx.annotation.Nullable;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.redsponge.carddeck.R;
-import com.redsponge.carddeck.card.RoomFBC;
+import com.redsponge.carddeck.card.CardData;
 import com.redsponge.carddeck.card.Constants;
+import com.redsponge.carddeck.card.PileData;
+import com.redsponge.carddeck.room.ListRoomItem;
 import com.redsponge.carddeck.utils.Utils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CreateRoomActivity extends Activity {
 
@@ -78,7 +84,7 @@ public class CreateRoomActivity extends Activity {
 
                 ListRoomItem roomItem = new ListRoomItem(roomName, maxPlayers, Utils.isBlankOrNull(password) ? "" : Utils.hashPassword(password), 0);
                 db.getReference().child(Constants.ROOMS_REFERENCE).child(roomName).setValue(roomItem);
-                RoomFBC.initializeRoom(db.getReference().child(Constants.ROOMS_REFERENCE).child(roomName));
+                createRoom(db.getReference().child(Constants.ROOMS_REFERENCE).child(roomName));
                 Toast.makeText(CreateRoomActivity.this, "Successfully Created Room!", Toast.LENGTH_SHORT).show();
                 finish();
             }
@@ -89,6 +95,25 @@ public class CreateRoomActivity extends Activity {
             }
         });
 
+    }
+
+    private void createRoom(DatabaseReference roomRef) {
+        List<String> cardIds = new ArrayList<>();
+        for (String suit : Constants.SUITS) {
+            for (int i = Constants.CARD_MIN; i <= Constants.CARD_MAX; i++) {
+                DatabaseReference cardRef = roomRef.child(Constants.CARDS_REFERENCE).push();
+                cardRef.setValue(new CardData(false, suit, i));
+                cardIds.add(cardRef.getKey());
+            }
+        }
+
+        DatabaseReference initialPileRef = roomRef.child(Constants.PILES_REFERENCE).push();
+        initialPileRef.child(Constants.TRANSFORM_REFERENCE).setValue(new PileData());
+        for (String cardId : cardIds) {
+            initialPileRef.child(Constants.CARDS_REFERENCE).push().setValue(cardId);
+        }
+
+        roomRef.child(Constants.PILE_ORDER_REFERENCE).push().setValue(initialPileRef.getKey());
     }
 
     private void lockUI() {
