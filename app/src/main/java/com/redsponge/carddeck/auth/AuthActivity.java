@@ -13,7 +13,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.redsponge.carddeck.R;
-import com.redsponge.carddeck.list.RoomListActivity;
+import com.redsponge.carddeck.room.RoomListActivity;
 
 public class AuthActivity extends FragmentActivity {
 

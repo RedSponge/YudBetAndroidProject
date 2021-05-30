@@ -1,4 +1,4 @@
-package com.redsponge.carddeck.list;
+package com.redsponge.carddeck.room;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -18,7 +18,6 @@ import com.google.firebase.database.ValueEventListener;
 import com.redsponge.carddeck.R;
 import com.redsponge.carddeck.card.RoomFBC;
 import com.redsponge.carddeck.card.Constants;
-import com.redsponge.carddeck.room.ListRoomItem;
 import com.redsponge.carddeck.utils.Utils;
 
 public class CreateRoomActivity extends Activity {

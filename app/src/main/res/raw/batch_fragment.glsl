@@ -1,3 +1,5 @@
+// Fragment Shader
+
 precision mediump float;
 
 uniform sampler2D u_texture;

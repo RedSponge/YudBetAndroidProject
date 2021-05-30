@@ -1,4 +1,4 @@
-package com.redsponge.carddeck.list;
+package com.redsponge.carddeck.room;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -27,7 +27,6 @@ import com.redsponge.carddeck.GameActivity;
 import com.redsponge.carddeck.R;
 import com.redsponge.carddeck.auth.AuthActivity;
 import com.redsponge.carddeck.card.Constants;
-import com.redsponge.carddeck.room.ListRoomItem;
 import com.redsponge.carddeck.utils.Utils;
 
 public class RoomListActivity extends Activity {
