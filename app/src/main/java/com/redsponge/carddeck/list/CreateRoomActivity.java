@@ -109,7 +109,9 @@ public class CreateRoomActivity extends Activity {
 
         DatabaseReference initialPileRef = roomRef.child(Constants.PILES_REFERENCE).push();
         initialPileRef.child(Constants.TRANSFORM_REFERENCE).setValue(new PileData());
-        initialPileRef.child(Constants.CARDS_REFERENCE).setValue(cardIds);
+        for (String cardId : cardIds) {
+            initialPileRef.child(Constants.CARDS_REFERENCE).push().setValue(cardId);
+        }
 
         roomRef.child(Constants.PILE_ORDER_REFERENCE).push().setValue(initialPileRef.getKey());
     }

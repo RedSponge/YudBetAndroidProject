@@ -22,10 +22,20 @@ public class PileFBC {
 
         this.ref = ref;
 
-        ref.child(Constants.TRANSFORM_REFERENCE).addValueEventListener(Listeners.value(data -> this.data = data.getValue(PileData.class)));
+        this.drawnScale = 1;
+        this.drawnX = -100;
+        this.drawnY = -100;
+
+        ref.child(Constants.TRANSFORM_REFERENCE).addValueEventListener(Listeners.value(data -> {
+            this.data = data.getValue(PileData.class);
+            if(drawnX < 0) drawnX = this.data.getX();
+            if(drawnY < 0) drawnY = this.data.getY();
+        }));
     }
 
     public void updateDrawnPosition() {
+        if(drawnX < 0 || drawnY < 0) return;
+
         drawnX = MathUtils.lerp(drawnX, data.getX(), 0.2f);
         drawnY = MathUtils.lerp(drawnY, data.getY(), 0.2f);
         if (Math.abs(drawnX - data.getX()) < 0.1f) {
@@ -115,7 +125,19 @@ public class PileFBC {
         return cardList.size();
     }
 
+    public String getCardId(int idx) {
+        return cardList.get(idx);
+    }
+
     public CardData getCard(int idx) {
         return roomIn.getCard(cardList.get(idx));
+    }
+
+    public SynchronizedList<String> getCardList() {
+        return cardList;
+    }
+
+    public void delete() {
+        ref.removeValue();
     }
 }

@@ -11,23 +11,23 @@ public class PileData {
     private Vector2 tmpVec;
 
     public PileData() {
-        this(0, 0, Constants.CARD_WIDTH, Constants.CARD_HEIGHT);
+        this(0, 0, 0);
     }
 
     public PileData(float x, float y, long chosenTime) {
-        this.x = x;
-        this.y = y;
-        this.chosenTime = chosenTime;
-        this.width = Constants.CARD_WIDTH;
-        this.height = Constants.CARD_HEIGHT;
+        this(x, y, Constants.CARD_WIDTH, Constants.CARD_HEIGHT, chosenTime);
     }
 
     public PileData(float x, float y, float width, float height) {
+        this(x, y, width, height, 0);
+    }
+
+    public PileData(float x, float y, float width, float height, long chosenTime) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
-        this.chosenTime = 0;
+        this.chosenTime = chosenTime;
         this.tmpVec = new Vector2();
     }
 
@@ -94,5 +94,9 @@ public class PileData {
     @Exclude
     public Vector2 getCenter() {
         return tmpVec.set(x, y);
+    }
+
+    public PileData cpy() {
+        return new PileData(x, y, width, height, chosenTime);
     }
 }

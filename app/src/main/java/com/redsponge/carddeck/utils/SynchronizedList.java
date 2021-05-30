@@ -6,6 +6,8 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -28,8 +30,19 @@ public class SynchronizedList<T> implements Iterable<T> {
         return newRef.getKey();
     }
 
-    public void remove(String key) {
+    public void removeIndex(int idx) {
+        dbRef.child(internalList.get(idx).first).removeValue();
+    }
+
+    public void removeKey(String key) {
         dbRef.child(key).removeValue();
+    }
+
+    public void removeValue(T value) {
+        String keyOfVal = getKeyOfVal(value);
+        if(keyOfVal != null) {
+            dbRef.child(keyOfVal).removeValue();
+        }
     }
 
     public void set(String key, T newVal) {
@@ -38,6 +51,14 @@ public class SynchronizedList<T> implements Iterable<T> {
 
     public int indexOf(String key) {
         return positionFor(key);
+    }
+
+    public void addAll(Collection<T> toAdd) {
+        HashMap<String, Object> valsToAdd = new HashMap<>();
+        for (T value : toAdd) {
+            valsToAdd.put(dbRef.push().getKey(), value);
+        }
+        dbRef.updateChildren(valsToAdd);
     }
 
     public T get(int idx) {
@@ -53,6 +74,16 @@ public class SynchronizedList<T> implements Iterable<T> {
 
     public int size() {
         return internalList.size();
+    }
+
+    private String getKeyOfVal(T value) {
+        int len = internalList.size();
+        for(int i = 0; i < len; i++) {
+            if(internalList.get(i).second.equals(value)) {
+                return internalList.get(i).first;
+            }
+        }
+        return null;
     }
 
     private void sync() {
@@ -130,4 +161,5 @@ public class SynchronizedList<T> implements Iterable<T> {
             }
         };
     }
+
 }

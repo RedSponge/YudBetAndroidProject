@@ -5,6 +5,7 @@ import android.opengl.GLES20;
 import android.opengl.GLES30;
 import android.util.Log;
 
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.redsponge.carddeck.card.CardData;
 import com.redsponge.carddeck.card.Constants;
@@ -71,6 +72,25 @@ public class GameScreen extends Screen implements InputHandler {
         batch.begin();
         batch.draw(packedTextures.getTexture(Constants.TEXTURE_BACKGROUND), 0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
 
+        renderRoom();
+        renderHand();
+
+        batch.end();
+    }
+
+    private void renderHand() {
+        float handHeightPercent;
+        float animationSpeed = 2;
+        if (isHandUp) {
+            handHeightPercent = MathUtils.easeOutInterpolation(MathUtils.clamp(0, Utils.secondsSince(handSwitchTime) * animationSpeed, 1));
+        } else {
+            handHeightPercent = MathUtils.easeInInterpolation(MathUtils.clamp(0, 1 - Utils.secondsSince(handSwitchTime) * animationSpeed, 1));
+        }
+
+        batch.draw(packedTextures.getTexture(Constants.TEXTURE_HAND_BACKGROUND), 0, -250 + handHeightPercent * 60, viewport.getWorldWidth(), viewport.getWorldHeight());
+    }
+
+    private void renderRoom() {
         if (roomFBC.isLoaded()) {
             for (PileFBC pile : roomFBC) {
                 pile.updateDrawnPosition();
@@ -92,17 +112,6 @@ public class GameScreen extends Screen implements InputHandler {
                 }
             }
         }
-
-        float handHeightPercent;
-        float animationSpeed = 2;
-        if (isHandUp) {
-            handHeightPercent = MathUtils.easeOutInterpolation(MathUtils.clamp(0, Utils.secondsFrom(handSwitchTime) * animationSpeed, 1));
-        } else {
-            handHeightPercent = MathUtils.easeInInterpolation(MathUtils.clamp(0, 1 - Utils.secondsFrom(handSwitchTime) * animationSpeed, 1));
-        }
-
-        batch.draw(packedTextures.getTexture(Constants.TEXTURE_HAND_BACKGROUND), 0, -250 + handHeightPercent * 60, viewport.getWorldWidth(), viewport.getWorldHeight());
-        batch.end();
     }
 
     @Override
@@ -145,6 +154,8 @@ public class GameScreen extends Screen implements InputHandler {
 
         if(finalChosen != null) {
             selectPile(finalChosen);
+            dragStartPos.set(inWorld);
+            roomFBC.pushPileToFront(finalChosen);
         }
     }
 
@@ -152,44 +163,56 @@ public class GameScreen extends Screen implements InputHandler {
     @Override
     public void onDrag(float x, float y) {
         if(selectedPile == null) return;
+        if(!roomFBC.isLoaded()) return;
+        if(!roomFBC.isPileLoaded(selectedPile)) return;
 
         Vector2 inWorld = viewport.unproject(tmpVector.set(x, y), tmpVector);
         inWorld.y = viewport.getWorldHeight() - inWorld.y;
 
         PileFBC pileFBC = roomFBC.getPile(selectedPile);
+        if(pileFBC.getSize() > 1 && Utils.secondsSince(pileSelectionTime) < Constants.PILE_HOLD_MOVE_TIME) {
+            float distanceSquared = inWorld.dst2(dragStartPos);
 
-        pileFBC.setData(new PileData(inWorld.x, inWorld.y, System.nanoTime()));
-        //        if(!hasDoneSplit) {
-//            float distanceSquared = inWorld.dst2(dragStartPos);
-//            float deltaTime = Utils.secondsFrom(cardSelectionTime);
-//
-//            if (deltaTime > Constants.PILE_HOLD_MOVE_TIME) {
-//                hasDoneSplit = true;
-//            }
-//            else if (distanceSquared > Constants.MIN_CARD_SPLIT_DST2) {
-//                System.out.println("Split!");
-//                CardFBC topCard = selectedPileFBC.popTopCard();
-//                PileFBC newPile = roomFBC.createPile(inWorld.x, inWorld.y, System.nanoTime(), topCard);
-//                hasDoneSplit = true;
-//                selectedPileFBC.getData().setChosenTime(0);
-//                selectedPileFBC.pushUpdate();
-//                selectedPileFBC = newPile;
-//            }
-//        }
-//
-//        selectedPileFBC.getData().setX(MathUtils.clamp(Constants.CARD_WIDTH / 2f, inWorld.x - selectedPileFBC.getData().getWidth() / 2f, viewport.getWorldWidth() - Constants.CARD_WIDTH / 2f));
-//        selectedPileFBC.getData().setY(MathUtils.clamp(Constants.CARD_HEIGHT / 2f, inWorld.y - selectedPileFBC.getData().getWidth() / 2f, viewport.getWorldHeight() - Constants.CARD_HEIGHT / 2f));
-//        selectedPileFBC.getData().setChosenTime(System.nanoTime());
-//        selectedPileFBC.pushUpdate();
+            if(distanceSquared < Constants.MIN_CARD_SPLIT_DST2) {
+                DatabaseReference newPile = roomFBC.newPileRef();
+
+                newPile.child(Constants.TRANSFORM_REFERENCE).setValue(pileFBC.getData().cpy());
+                newPile.child(Constants.CARDS_REFERENCE).push().setValue(pileFBC.getCardId(0));
+                pileFBC.getCardList().removeIndex(0);
+                pileFBC.setChosenTime(0);
+
+                roomFBC.addPileToOrder(newPile.getKey());
+
+                selectedPile = newPile.getKey();
+            }
+        } else {
+            pileFBC.setData(new PileData(inWorld.x, inWorld.y, System.nanoTime()));
+        }
     }
 
     @Override
     public void onRelease(float x, float y) {
         if(selectedPile == null) return;
-        selectedPile = null;
 
-//        Vector2 inWorld = viewport.unproject(tmpVector.set(x, y), tmpVector);
-//        inWorld.y = viewport.getWorldHeight() - inWorld.y;
+        Vector2 inWorld = viewport.unproject(tmpVector.set(x, y), tmpVector);
+        inWorld.y = viewport.getWorldHeight() - inWorld.y;
+
+        String pileToMergeWith = null;
+        for (PileFBC pileFBC : roomFBC) {
+            if(pileFBC.getReference().getKey().equals(selectedPile)) continue;
+
+            float dst2 = inWorld.dst2(pileFBC.getData().getCenter());
+            if(dst2 < Constants.MIN_PILE_MERGE_DST2) {
+                pileToMergeWith = pileFBC.getReference().getKey();
+            }
+        }
+
+        if(pileToMergeWith != null) {
+            roomFBC.mergePiles(pileToMergeWith, selectedPile);
+        }
+
+        roomFBC.getPile(selectedPile).setChosenTime(0);
+        selectedPile = null;
 //
 //        float dt = (System.nanoTime() - cardSelectionTime) / 1000000000f;
 //        float distanceSquared = dragStartPos.dst2(inWorld);

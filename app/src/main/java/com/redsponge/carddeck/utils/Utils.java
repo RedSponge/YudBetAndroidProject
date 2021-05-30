@@ -18,7 +18,7 @@ public class Utils {
         return s == null || s.trim().isEmpty();
     }
 
-    public static float secondsFrom(long timestamp) {
+    public static float secondsSince(long timestamp) {
         return (System.nanoTime() - timestamp) / 1000000000f;
     }
 
