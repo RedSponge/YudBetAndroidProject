@@ -30,7 +30,7 @@ import java.util.Optional;
 
 public class AuthRegisterFragment extends Fragment {
 
-    private EditText etEmail, etPassword, etConfirmPassword;
+    private EditText etEmail, etPassword, etConfirmPassword, etName;
     private Button btnRegister;
 
     private Animation shakeAnimation;
@@ -57,6 +57,7 @@ public class AuthRegisterFragment extends Fragment {
         etEmail = view.findViewById(R.id.etEmail);
         etPassword = view.findViewById(R.id.etPassword);
         etConfirmPassword = view.findViewById(R.id.etConfirmPassword);
+        etName = view.findViewById(R.id.etName);
         btnRegister = view.findViewById(R.id.btnRegister);
 
         btnRegister.setOnClickListener(this::tryRegister);
@@ -67,10 +68,14 @@ public class AuthRegisterFragment extends Fragment {
         String email = etEmail.getText().toString();
         String password = etPassword.getText().toString();
         String confirmPassword = etConfirmPassword.getText().toString();
+        String name = etName.getText().toString();
 
         if(Utils.isBlankOrNull(email)) {
             showError(etEmail, "Email cannot be empty!");
             return;
+        }
+        if(Utils.isBlankOrNull(name)) {
+            showError(etName, "Name cannot be empty!");
         }
         if(Utils.isBlankOrNull(password)) {
             showError(etPassword, "Password cannot be empty!");
@@ -80,6 +85,7 @@ public class AuthRegisterFragment extends Fragment {
             showError(etConfirmPassword, "Password confirmation cannot be empty!");
             return;
         }
+
 
         if(!password.equals(confirmPassword)) {
             etConfirmPassword.setError("Passwords don't match!");
@@ -94,7 +100,7 @@ public class AuthRegisterFragment extends Fragment {
                 Optional<String> passwordError = Optional.empty();
 
                 if(task.isSuccessful() && auth.getCurrentUser() != null) {
-                    LoggedUser user = new LoggedUser("TMP USER", auth.getCurrentUser().getUid(), auth.getCurrentUser().getEmail());
+                    LoggedUser user = new LoggedUser(etName.getText().toString(), auth.getCurrentUser().getUid(), auth.getCurrentUser().getEmail());
                     db.getReference(Constants.USERS_REFERENCE).child(user.getUid()).setValue(user);
                     ((AuthActivity) Objects.requireNonNull(getActivity())).tryLogIn();
                 } else {

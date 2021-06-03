@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">GLTest</string>
+    <string name="app_name">Deck of Cards</string>
     <string name="app_title">Deck Of Cards</string>
 
     <string name="register_instead">Don\'t have an account?</string>

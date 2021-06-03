@@ -19,7 +19,12 @@ import com.redsponge.carddeck.gl.input.InputHandler;
 import com.redsponge.carddeck.gl.projection.FitViewport;
 import com.redsponge.carddeck.gl.texture.TextureRegion;
 import com.redsponge.carddeck.utils.MathUtils;
+import com.redsponge.carddeck.utils.Pair;
 import com.redsponge.carddeck.utils.Utils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 public class GameScreen extends Screen implements InputHandler {
 
@@ -39,6 +44,8 @@ public class GameScreen extends Screen implements InputHandler {
     private boolean isHandUp;
     private long handSwitchTime;
 
+    private boolean isSpreadingCards;
+
     public GameScreen(Context context, String roomName) {
         super(context);
         this.roomName = roomName;
@@ -50,7 +57,7 @@ public class GameScreen extends Screen implements InputHandler {
 
     @Override
     public void show() {
-        viewport = new FitViewport(320 * 1.5f   , 180 * 1.5f);
+        viewport = new FitViewport(320 * 1.5f, 180 * 1.5f);
         viewport.centerCamera();
 
         batch = new TextureBatch();
@@ -138,42 +145,42 @@ public class GameScreen extends Screen implements InputHandler {
 
     @Override
     public void onTouch(float x, float y) {
-        if(selectedPile != null) return;
-//        if(!roomFBC.isFullyLoaded()) return;
-//
+        if (selectedPile != null) return;
+
         Vector2 inWorld = viewport.unproject(tmpVector.set(x, y), tmpVector);
         inWorld.y = viewport.getWorldHeight() - inWorld.y;
 
         String finalChosen = null;
         for (PileFBC pileFBC : roomFBC) {
             PileData data = pileFBC.getData();
-            if(data.contains(inWorld) && !data.isChosen()) {
+            if (data.contains(inWorld) && !data.isChosen()) {
                 finalChosen = pileFBC.getReference().getKey();
             }
         }
 
-        if(finalChosen != null) {
+        if (finalChosen != null) {
             selectPile(finalChosen);
             dragStartPos.set(inWorld);
             roomFBC.pushPileToFront(finalChosen);
+            hasDoneSplit = false;
         }
     }
 
 
     @Override
     public void onDrag(float x, float y) {
-        if(selectedPile == null) return;
-        if(!roomFBC.isLoaded()) return;
-        if(!roomFBC.isPileLoaded(selectedPile)) return;
+        if (selectedPile == null) return;
+        if (!roomFBC.isLoaded()) return;
+        if (!roomFBC.isPileLoaded(selectedPile)) return;
 
         Vector2 inWorld = viewport.unproject(tmpVector.set(x, y), tmpVector);
         inWorld.y = viewport.getWorldHeight() - inWorld.y;
 
         PileFBC pileFBC = roomFBC.getPile(selectedPile);
-        if(pileFBC.getSize() > 1 && Utils.secondsSince(pileSelectionTime) < Constants.PILE_HOLD_MOVE_TIME) {
+        if (pileFBC.getSize() > 1 && Utils.secondsSince(pileSelectionTime) < Constants.PILE_HOLD_MOVE_TIME) {
             float distanceSquared = inWorld.dst2(dragStartPos);
 
-            if(distanceSquared < Constants.MIN_CARD_SPLIT_DST2) {
+            if (distanceSquared < Constants.MIN_CARD_SPLIT_DST2) {
                 DatabaseReference newPile = roomFBC.newPileRef();
 
                 newPile.child(Constants.TRANSFORM_REFERENCE).setValue(pileFBC.getData().cpy());
@@ -182,6 +189,7 @@ public class GameScreen extends Screen implements InputHandler {
                 pileFBC.setChosenTime(0);
 
                 roomFBC.addPileToOrder(newPile.getKey());
+                hasDoneSplit = true;
 
                 selectedPile = newPile.getKey();
             }
@@ -192,79 +200,76 @@ public class GameScreen extends Screen implements InputHandler {
 
     @Override
     public void onRelease(float x, float y) {
-        if(selectedPile == null) return;
+        if (selectedPile == null) return;
 
         Vector2 inWorld = viewport.unproject(tmpVector.set(x, y), tmpVector);
         inWorld.y = viewport.getWorldHeight() - inWorld.y;
 
-        String pileToMergeWith = null;
-        for (PileFBC pileFBC : roomFBC) {
-            if(pileFBC.getReference().getKey().equals(selectedPile)) continue;
+        if (!hasDoneSplit && Utils.secondsSince(pileSelectionTime) < 0.2f && inWorld.dst2(dragStartPos) < 20 * 20) {
+            String cardId = roomFBC.getPile(selectedPile).getCardId(0);
+            roomFBC.setCardFlip(cardId, !roomFBC.getCard(cardId).isFlipped());
+        } else {
+            String pileToMergeWith = null;
+            for (PileFBC pileFBC : roomFBC) {
+                if (pileFBC.getReference().getKey().equals(selectedPile)) continue;
 
-            float dst2 = inWorld.dst2(pileFBC.getData().getCenter());
-            if(dst2 < Constants.MIN_PILE_MERGE_DST2) {
-                pileToMergeWith = pileFBC.getReference().getKey();
+                float dst2 = inWorld.dst2(pileFBC.getData().getCenter());
+                if (dst2 < Constants.MIN_PILE_MERGE_DST2) {
+                    pileToMergeWith = pileFBC.getReference().getKey();
+                }
             }
-        }
 
-        if(pileToMergeWith != null) {
-            roomFBC.mergePiles(pileToMergeWith, selectedPile);
+            if (pileToMergeWith != null) {
+                roomFBC.mergePiles(pileToMergeWith, selectedPile);
+            }
         }
 
         roomFBC.getPile(selectedPile).setChosenTime(0);
         selectedPile = null;
-//
-//        float dt = (System.nanoTime() - cardSelectionTime) / 1000000000f;
-//        float distanceSquared = dragStartPos.dst2(inWorld);
-//        System.out.println("Release!");
-//        if(dt < 0.2f && (!hasDoneSplit || selectedPileFBC.getCardOrder().size() == 1) && distanceSquared < 20 * 20) {
-//            selectedPileFBC.getTopCard().getData().setFlipped(!selectedPileFBC.getTopCard().getData().isFlipped());
-//            selectedPileFBC.getTopCard().pushUpdate();
-//        } else {
-//            PileFBC pileToMergeWith = null;
-//            for (PileFBC otherPile : roomFBC) {
-//                if(otherPile == selectedPileFBC) continue;
-//                if(otherPile.getData().getCenter().dst2(selectedPileFBC.getData().getCenter()) < 10 * 10) {
-//                    pileToMergeWith = otherPile;
-//                }
-//            }
-//            if(pileToMergeWith != null) {
-//                roomFBC.mergePiles(pileToMergeWith, selectedPileFBC);
-//            }
-//        }
-//
-//        selectedPileFBC.getData().setChosenTime(0);
-//        selectedPileFBC.pushUpdate();
-//        selectedPileFBC = null;
     }
 
     @Override
     public void onAndroidEvent(int eventId) {
-        if(eventId == Constants.TOGGLE_HAND_EVENT) {
+        if (eventId == Constants.TOGGLE_HAND_EVENT) {
             toggleHand();
-        } else if(eventId == Constants.SHAKE_EVENT) {
+        } else if (eventId == Constants.SHAKE_EVENT) {
             spreadCards();
         }
     }
 
-    private void spreadCards() {
-//        Random rnd = new Random();
-//        synchronized (roomFBC) {
-//            for (PileFBC pile : roomFBC) {
-//                while (pile.getCardOrder().size() > 1) {
-//                    CardFBC topCard = pile.popTopCard();
-//                    float x = rnd.nextInt((int) (viewport.getWorldWidth() - 50)) + 25f;
-//                    float y = rnd.nextInt((int) (viewport.getWorldHeight() - 50)) + 25f;
-//
-//                    roomFBC.createPile(x, y, 0, topCard);
-//                }
-//
-//                float x = rnd.nextInt((int) (viewport.getWorldWidth() - 50)) + 25f;
-//                float y = rnd.nextInt((int) (viewport.getWorldHeight() - 50)) + 25f;
-//                pile.getData().setX(x);
-//                pile.getData().setY(y);
-//            }
-//        }
+    private synchronized void spreadCards() {
+        if(!roomFBC.isLoaded()) return;
+        if(isSpreadingCards) return;
+        isSpreadingCards = true;
+
+        Random rnd = new Random();
+        List<Pair<Vector2, String>> newPiles = new ArrayList<>();
+
+        for (PileFBC pileFBC : roomFBC) {
+            for (int i = 0; i < pileFBC.getSize() - 1; i++) {
+                float x = rnd.nextInt((int) (viewport.getWorldWidth() - 50)) + 25f;
+                float y = rnd.nextInt((int) (viewport.getWorldHeight() - 50)) + 25f;
+
+                newPiles.add(new Pair<>(new Vector2(x, y), pileFBC.getCardId(i)));
+            }
+
+            DatabaseReference child = pileFBC.getReference().child(Constants.CARDS_REFERENCE);
+            String topCard = pileFBC.getCardId(pileFBC.getSize() - 1);
+            child.removeValue();
+            child.push().setValue(topCard);
+        }
+
+        for (Pair<Vector2, String> newPile : newPiles) {
+            DatabaseReference newPileRef = roomFBC.newPileRef();
+
+            PileData data = new PileData(newPile.first.x, newPile.first.y, 0);
+            newPileRef.child(Constants.TRANSFORM_REFERENCE).setValue(data);
+            newPileRef.child(Constants.CARDS_REFERENCE).push().setValue(newPile.second);
+
+            roomFBC.addPileToOrder(newPileRef.getKey());
+        }
+
+        isSpreadingCards = false;
     }
 
     private void toggleHand() {
