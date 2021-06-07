@@ -129,7 +129,7 @@ public class RoomListActivity extends Activity {
 
     private void joinRoom(ListRoomItem roomItem) {
         db.getReference(Constants.ROOMS_REFERENCE).child(roomItem.getName()).child(Constants.ROOM_PLAYERS_REFERENCE)
-                .child(auth.getCurrentUser().getUid()).child(Constants.PLAYER_CARDS_REFERENCE).child("placeholder").setValue("placeholder");
+                .child(auth.getCurrentUser().getUid()).child("Connected").setValue(true);
 
         Intent i = new Intent(this, GameActivity.class);
         i.putExtra(Constants.ROOM_NAME_EXTRA, roomItem.getName());

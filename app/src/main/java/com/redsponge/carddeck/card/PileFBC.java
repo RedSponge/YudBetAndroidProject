@@ -33,7 +33,7 @@ public class PileFBC {
         }));
     }
 
-    public void updateDrawnPosition() {
+    public void updateDrawnPosition(boolean isChosen) {
         if(drawnX < 0 || drawnY < 0) return;
 
         drawnX = MathUtils.lerp(drawnX, data.getX(), 0.2f);
@@ -45,7 +45,7 @@ public class PileFBC {
             drawnY = data.getY();
         }
 
-        float drawnScaleTarget = data.isChosen() ? 1.2f : 1;
+        float drawnScaleTarget = (isChosen || data.isChosen()) ? 1.2f : 1;
         drawnScale = MathUtils.lerp(drawnScale, drawnScaleTarget, 0.2f);
         if (Math.abs(drawnScale - drawnScaleTarget) < 0.1f) {
             drawnScale = drawnScaleTarget;

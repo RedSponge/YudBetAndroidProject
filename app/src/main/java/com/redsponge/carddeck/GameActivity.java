@@ -22,6 +22,7 @@ public class GameActivity extends Activity  {
     private GLGameView glView;
     private SensorManager sensorManager;
     private float accelLast, accelCurrent, accel;
+    private long lastShakeTime;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -51,6 +52,9 @@ public class GameActivity extends Activity  {
         sensorManager.registerListener(new SensorEventListener() {
             @Override
             public void onSensorChanged(SensorEvent event) {
+                long currentTime = System.nanoTime();
+                if((currentTime - lastShakeTime) / 1000000000f < 0.2f) return;
+                lastShakeTime = currentTime;
                 float x = event.values[0];
                 float y = event.values[1];
                 float z = event.values[2];
@@ -92,5 +96,6 @@ public class GameActivity extends Activity  {
 
     public void toggleHand(View view) {
         glView.getScreen().onAndroidEvent(Constants.TOGGLE_HAND_EVENT);
+//        glView.getScreen().onAndroidEvent(Constants.SHAKE_EVENT);
     }
 }

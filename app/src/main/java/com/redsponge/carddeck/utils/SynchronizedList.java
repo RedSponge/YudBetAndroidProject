@@ -16,6 +16,7 @@ public class SynchronizedList<T> implements Iterable<T> {
     private final DatabaseReference dbRef;
     private final List<Pair<String, T>> internalList; // Pairs of <FB Key, Value>
     private final Class<T> type;
+    private ChildEventAdapter listener;
 
     public SynchronizedList(DatabaseReference dbRef, Class<T> type) {
         this.dbRef = dbRef;
@@ -53,7 +54,7 @@ public class SynchronizedList<T> implements Iterable<T> {
         return positionFor(key);
     }
 
-    public void addAll(Collection<T> toAdd) {
+    public void addAll(Iterable<T> toAdd) {
         HashMap<String, Object> valsToAdd = new HashMap<>();
         for (T value : toAdd) {
             valsToAdd.put(dbRef.push().getKey(), value);
@@ -87,7 +88,7 @@ public class SynchronizedList<T> implements Iterable<T> {
     }
 
     private void sync() {
-        dbRef.addChildEventListener(new ChildEventAdapter() {
+        dbRef.addChildEventListener(listener = new ChildEventAdapter() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String prevChildName) {
                 Pair<String, T> val = new Pair<>(dataSnapshot.getKey(), dataSnapshot.getValue(type));
@@ -162,4 +163,7 @@ public class SynchronizedList<T> implements Iterable<T> {
         };
     }
 
+    public void detach() {
+        dbRef.removeEventListener(listener);
+    }
 }

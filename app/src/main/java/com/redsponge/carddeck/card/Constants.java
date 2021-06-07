@@ -24,11 +24,11 @@ public class Constants {
     public static final int CARD_MIN = 1;
     public static final int CARD_MAX = 13;
 
-    public static final float PILE_HOLD_MOVE_TIME = 0.2f;
+    public static final float PILE_HOLD_MOVE_TIME = 0.3f;
 
     public static final int CARD_WIDTH = 16 * 2;
     public static final int CARD_HEIGHT = 24 * 2;
-    public static final int PILE_MAX_DRAWN_HEIGHT = 5;
+    public static final int PILE_MAX_DRAWN_HEIGHT = 10;
     ;
 
     public static final float MAX_CHOICE_TIME = 0.1f;
