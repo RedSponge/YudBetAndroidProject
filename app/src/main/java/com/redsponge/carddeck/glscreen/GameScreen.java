@@ -27,7 +27,6 @@ import com.redsponge.carddeck.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class GameScreen extends Screen implements InputHandler {
 
@@ -46,6 +45,8 @@ public class GameScreen extends Screen implements InputHandler {
     private boolean hasDoneSplit;
     private boolean isHandUp;
     private long handSwitchTime;
+
+    private SynchronizedList<String> playerHandList;
 
     public GameScreen(Context context, String roomName) {
         super(context);
@@ -68,6 +69,9 @@ public class GameScreen extends Screen implements InputHandler {
 
     @Override
     public void render(float delta) {
+        if(playerHandList == null) {
+            playerHandList = roomFBC.getPlayerHand(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        }
 
         GLES30.glClearColor(30 / 255f, 123 / 255f, 58 / 255f, 1.0f);
         GLES30.glClear(GLES20.GL_COLOR_BUFFER_BIT);
@@ -96,13 +100,30 @@ public class GameScreen extends Screen implements InputHandler {
             handHeightPercent = MathUtils.easeInInterpolation(MathUtils.clamp(0, 1 - Utils.secondsSince(handSwitchTime) * animationSpeed, 1));
         }
 
-        batch.draw(packedTextures.getTexture(Constants.TEXTURE_HAND_BACKGROUND), 0, -260 + handHeightPercent * 60, viewport.getWorldWidth(), viewport.getWorldHeight());
+        int animationHeightDiff = 45;
+
+        int rowLength = 26;
+
         SynchronizedList<String> playerHand = roomFBC.getPlayerHand(FirebaseAuth.getInstance().getCurrentUser().getUid());
+
+        int handSize = playerHand == null ? 0 : playerHand.size();
+
+        final float backgroundBottom = -260;
+        float backgroundY = backgroundBottom + handHeightPercent * (animationHeightDiff + 5) * Math.max(1, ((handSize - 1) / rowLength + 1));
+
+        batch.draw(packedTextures.getTexture(Constants.TEXTURE_HAND_BACKGROUND), 0, backgroundY, viewport.getWorldWidth(), viewport.getWorldHeight());
+
         if(playerHand != null) {
             int i = 0;
             for (String card : playerHand) {
-                CardData cardData = roomFBC.getCard(card);
-                batch.draw(packedTextures.getCard(cardData), 16 * i + 20, -Constants.CARD_HEIGHT / 2f - 30 + handHeightPercent * 60, Constants.CARD_WIDTH, Constants.CARD_HEIGHT);
+                if(roomFBC.isCardLoaded(card)) {
+                    CardData cardData = roomFBC.getCard(card);
+                    float y = -Constants.CARD_HEIGHT / 2f - 18 + handHeightPercent * animationHeightDiff;
+                    if(isHandUp) {
+                        y += handHeightPercent * (animationHeightDiff + 5) * (i / rowLength);
+                    }
+                    batch.draw(packedTextures.getCard(cardData), 16 * (i % rowLength) + 24, y, Constants.CARD_WIDTH, Constants.CARD_HEIGHT);
+                }
                 i++;
             }
         }
@@ -176,20 +197,61 @@ public class GameScreen extends Screen implements InputHandler {
         Vector2 inWorld = viewport.unproject(tmpVector.set(x, y), tmpVector);
         inWorld.y = viewport.getWorldHeight() - inWorld.y;
 
-        String finalChosen = null;
-        for (PileFBC pileFBC : roomFBC) {
-            PileData data = pileFBC.getData();
-            if (data.contains(inWorld) && !data.isChosen()) {
-                finalChosen = pileFBC.getReference().getKey();
+        if(isHandUp && isInHandSpace(inWorld)) {
+            List<Pair<PileData, String>> piles = genHandPileData();
+            Pair<PileData, String> finalChosen = null;
+
+            for (Pair<PileData, String> pile : piles) {
+                if(pile.first.contains(inWorld)) {
+                    finalChosen = pile;
+                }
+            }
+
+            if(finalChosen != null) {
+                DatabaseReference ref = roomFBC.newPileRef();
+
+                finalChosen.first.setChosenTime(System.nanoTime());
+                pileSelectionTime = System.nanoTime();
+
+                ref.child(Constants.TRANSFORM_REFERENCE).setValue(finalChosen.first);
+                ref.child(Constants.CARDS_REFERENCE).push().setValue(finalChosen.second);
+                roomFBC.addPileToOrder(ref.getKey());
+                playerHandList.removeValue(finalChosen.second);
+
+                selectedPile = ref.getKey();
+                hasDoneSplit = false;
+                dragStartPos.set(inWorld);
+            }
+        } else {
+            String finalChosen = null;
+            for (PileFBC pileFBC : roomFBC) {
+                PileData data = pileFBC.getData();
+                if (data.contains(inWorld) && !data.isChosen()) {
+                    finalChosen = pileFBC.getReference().getKey();
+                }
+            }
+
+            if (finalChosen != null) {
+                selectPile(finalChosen);
+                dragStartPos.set(inWorld);
+                roomFBC.pushPileToFront(finalChosen);
+                hasDoneSplit = false;
             }
         }
+    }
 
-        if (finalChosen != null) {
-            selectPile(finalChosen);
-            dragStartPos.set(inWorld);
-            roomFBC.pushPileToFront(finalChosen);
-            hasDoneSplit = false;
+    /**
+     *
+     * @return A list of {@link PileData}s and the card within them as a pair.
+     */
+    private List<Pair<PileData, String>> genHandPileData() {
+        if(playerHandList == null) return null;
+        List<Pair<PileData, String>> piles = new ArrayList<>();
+        int i = 0;
+        for (String card : playerHandList) {
+
         }
+        return piles;
     }
 
 
@@ -226,7 +288,19 @@ public class GameScreen extends Screen implements InputHandler {
     }
 
     private boolean isInHandSpace(Vector2 pos) {
-        return pos.y < 80 && 20 < pos.x && pos.x < viewport.getWorldWidth() - 20;
+        if(playerHandList == null) return false;
+
+        final int animationHeightDiff = Constants.HAND_ANIMATION_HEIGHT;
+        final int rowLength = Constants.HAND_ROW_LENGTH;
+        final float backgroundBottom = Constants.HAND_BACKGROUND_BOTTOM_Y;
+        final float handHeightPercent = isHandUp ? 1 : 0;
+
+        float backgroundY = backgroundBottom + handHeightPercent * (animationHeightDiff + 5) * Math.max(1, ((playerHandList.size() - 1) / rowLength + 1));
+
+        float topCap = packedTextures.getTexture(Constants.TEXTURE_HAND_BACKGROUND).getHeight() * 1.5f + backgroundY;
+        System.out.println(backgroundY + " " + topCap + " " + packedTextures.getTexture(Constants.TEXTURE_HAND_BACKGROUND).getHeight());
+
+        return pos.y < topCap && Constants.HAND_DISPLAY_MARGIN < pos.x && pos.x < viewport.getWorldWidth() - Constants.HAND_DISPLAY_MARGIN;
     }
 
     @Override
@@ -236,7 +310,7 @@ public class GameScreen extends Screen implements InputHandler {
         Vector2 inWorld = viewport.unproject(tmpVector.set(x, y), tmpVector);
         inWorld.y = viewport.getWorldHeight() - inWorld.y;
 
-        if(isInHandSpace(inWorld)) {
+        if(isHandUp && isInHandSpace(inWorld)) {
             roomFBC.addPileToPlayerHand(FirebaseAuth.getInstance().getCurrentUser().getUid(), selectedPile);
         } else {
             if (!hasDoneSplit && Utils.secondsSince(pileSelectionTime) < 0.2f && inWorld.dst2(dragStartPos) < 20 * 20) {
@@ -275,36 +349,6 @@ public class GameScreen extends Screen implements InputHandler {
     private synchronized void spreadCards() {
         if(!roomFBC.isLoaded()) return;
         roomFBC.spreadCards();
-        System.out.println("Spread!");
-//
-//        Random rnd = new Random();
-//        List<Pair<Vector2, String>> newPiles = new ArrayList<>();
-//
-//        for (PileFBC pileFBC : roomFBC) {
-////            for (int i = 0; i < pileFBC.getSize() - 1; i++) {
-//                float x = rnd.nextInt((int) (viewport.getWorldWidth() - 50)) + 25f;
-//                float y = rnd.nextInt((int) (viewport.getWorldHeight() - 50)) + 25f;
-//
-//                pileFBC.setX(x);
-//                pileFBC.setY(y);
-////            }
-
-//            DatabaseReference child = pileFBC.getReference().child(Constants.CARDS_REFERENCE);
-//            String topCard = pileFBC.getCardId(pileFBC.getSize() - 1);
-//            child.removeValue();
-//            child.push().setValue(topCard);
-//        }
-
-//        for (Pair<Vector2, String> newPile : newPiles) {
-//            DatabaseReference newPileRef = roomFBC.newPileRef();
-//
-//            PileData data = new PileData(newPile.first.x, newPile.first.y, 0);
-//            newPileRef.child(Constants.TRANSFORM_REFERENCE).setValue(data);
-//            newPileRef.child(Constants.CARDS_REFERENCE).push().setValue(newPile.second);
-//
-//            roomFBC.addPileToOrder(newPileRef.getKey());
-//        }
-//
     }
 
     private void toggleHand() {

@@ -28,8 +28,10 @@ public class PileFBC {
 
         ref.child(Constants.TRANSFORM_REFERENCE).addValueEventListener(Listeners.value(data -> {
             this.data = data.getValue(PileData.class);
-            if(drawnX < 0) drawnX = this.data.getX();
-            if(drawnY < 0) drawnY = this.data.getY();
+            if(this.data != null) {
+                if (drawnX < 0) drawnX = this.data.getX();
+                if (drawnY < 0) drawnY = this.data.getY();
+            }
         }));
     }
 

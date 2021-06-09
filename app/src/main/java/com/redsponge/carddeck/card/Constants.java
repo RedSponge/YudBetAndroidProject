@@ -42,4 +42,9 @@ public class Constants {
 
     public static final int TOGGLE_HAND_EVENT = 1;
     public static final int SHAKE_EVENT = 2;
+
+    public static final int HAND_DISPLAY_MARGIN = 20;
+    public static final int HAND_ANIMATION_HEIGHT = 45;
+    public static final int HAND_ROW_LENGTH = 26;
+    public static final int HAND_BACKGROUND_BOTTOM_Y = -260;
 }

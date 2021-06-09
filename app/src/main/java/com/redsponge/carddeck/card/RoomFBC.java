@@ -210,6 +210,8 @@ public class RoomFBC implements Iterable<PileFBC> {
     }
 
     public void addPileToPlayerHand(String playerUid, String pile) {
+        if(!pileMap.containsKey(pile) || !playerCardsMap.containsKey(playerUid)) return;
+
         playerCardsMap.get(playerUid).addAll(pileMap.get(pile).getCardList());
         pileOrder.removeValue(pile);
         pileMap.get(pile).getReference().removeValue();
@@ -218,6 +220,10 @@ public class RoomFBC implements Iterable<PileFBC> {
 
     public SynchronizedList<String> getPlayerHand(String playerUid) {
         return playerCardsMap.get(playerUid);
+    }
+
+    public boolean isCardLoaded(String card) {
+        return cardList.indexOf(card) != -1;
     }
 
     public class PileIterator implements Iterator<PileFBC> {
