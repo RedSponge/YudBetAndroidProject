@@ -25,12 +25,15 @@ public class PileFBC {
         this.drawnScale = 1;
         this.drawnX = -100;
         this.drawnY = -100;
+        this.data = new PileData();
 
         ref.child(Constants.TRANSFORM_REFERENCE).addValueEventListener(Listeners.value(data -> {
             this.data = data.getValue(PileData.class);
-            if(this.data != null) {
+            if (this.data != null) {
                 if (drawnX < 0) drawnX = this.data.getX();
                 if (drawnY < 0) drawnY = this.data.getY();
+            } else {
+                this.data = new PileData(drawnX, drawnY, 0);
             }
         }));
     }

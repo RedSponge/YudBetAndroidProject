@@ -165,4 +165,8 @@ public class SynchronizedList<T> implements Iterable<T> {
     public void detach() {
         dbRef.removeEventListener(listener);
     }
+
+    public void clear() {
+        dbRef.setValue(null);
+    }
 }

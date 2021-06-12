@@ -47,6 +47,7 @@ public class GameScreen extends Screen implements InputHandler {
     private long handSwitchTime;
 
     private SynchronizedList<String> playerHandList;
+    private long lastSpreadTime;
 
     public GameScreen(Context context, String roomName) {
         super(context);
@@ -128,6 +129,8 @@ public class GameScreen extends Screen implements InputHandler {
     private void renderRoom() {
         if (roomFBC.isLoaded()) {
             for (PileFBC pile : roomFBC) {
+                if(pile == null) continue;
+
                 if (!pile.hasTopCard()) {
                     Log.w("GameScreen", "Pile " + pile.getReference().getKey() + " has no cards!");
                     continue;
@@ -351,6 +354,8 @@ public class GameScreen extends Screen implements InputHandler {
 
     private synchronized void spreadCards() {
         if(!roomFBC.isLoaded()) return;
+        if(Utils.secondsSince(lastSpreadTime) < 1) return;
+        lastSpreadTime = System.nanoTime();
         roomFBC.spreadCards();
     }
 

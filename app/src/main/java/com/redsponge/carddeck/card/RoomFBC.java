@@ -6,10 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.MutableData;
-import com.google.firebase.database.Transaction;
 import com.redsponge.carddeck.gl.Vector2;
 import com.redsponge.carddeck.utils.ChildEventAdapter;
 import com.redsponge.carddeck.utils.Pair;
@@ -164,45 +161,38 @@ public class RoomFBC implements Iterable<PileFBC> {
     }
 
     public void spreadCards() {
-        reference.runTransaction(new Transaction.Handler() {
-            @NonNull
-            @Override
-            public Transaction.Result doTransaction(@NonNull MutableData mutableData) {
-                List<Pair<Vector2, String>> piles = new ArrayList<>(); // <Position, Card>
+        List<Pair<Vector2, String>> newPiles = new ArrayList<>(); // <Position, Card>
 
-                Random rnd = new Random();
+        Random rnd = new Random();
 
-
-                for (PileFBC pile : pileMap.values()) {
-                    for(int i = 0; i < pile.getSize(); i++) {
-                        int x = rnd.nextInt((int) (320 * 1.5f));
-                        int y = rnd.nextInt((int) (180 * 1.5f));
-
-                        piles.add(new Pair<>(new Vector2(x, y), pile.getCardId(i)));
-                    }
-                }
-
-                mutableData.child(Constants.PILES_REFERENCE).setValue(null);
-                mutableData.child(Constants.PILE_ORDER_REFERENCE).setValue(null);
-
-
-                for (int i = 0; i < piles.size(); i++) {
-                    System.out.println("Adding pile " + piles.get(i));
-                    MutableData pileRef = mutableData.child(Constants.PILES_REFERENCE).child(i + "");
-                    pileRef.child(Constants.CARDS_REFERENCE).child("0").setValue(piles.get(i).second);
-                    pileRef.child(Constants.TRANSFORM_REFERENCE).setValue(new PileData(piles.get(i).first.x, piles.get(i).first.y, 0));
-
-                    mutableData.child(Constants.PILE_ORDER_REFERENCE).child(i + "").setValue(i + "");
-                }
-
-                return Transaction.success(mutableData);
+        for (PileFBC pile : pileMap.values()) {
+            int marginX = 30;
+            int marginY = 40;
+            for (int i = 0; i < pile.getSize() - 1; i++) {
+                int x = rnd.nextInt((int) (320 * 1.5f) - marginX * 2) + marginX;
+                int y = rnd.nextInt((int) (180 * 1.5f) - marginY * 2) + marginY;
+                newPiles.add(new Pair<>(new Vector2(x, y), pile.getCardId(i)));
             }
 
-            @Override
-            public void onComplete(@Nullable DatabaseError databaseError, boolean b, @Nullable DataSnapshot dataSnapshot) {
-                System.out.println("Error: " + databaseError + " commited: " + b);
+            if(pile.getSize() > 1) {
+                String topCard = pile.getCardId(pile.getSize() - 1);
+                pile.getCardList().clear();
+                pile.getCardList().add(topCard);
             }
-        });
+
+            int x = rnd.nextInt((int) (320 * 1.5f) - marginX * 2) + marginX;
+            int y = rnd.nextInt((int) (180 * 1.5f) - marginY * 2) + marginY;
+            pile.setX(x);
+            pile.setY(y);
+        }
+
+        for (int i = 0; i < newPiles.size(); i++) {
+            DatabaseReference pileRef = reference.child(Constants.PILES_REFERENCE).push();
+            pileRef.child(Constants.CARDS_REFERENCE).push().setValue(newPiles.get(i).second);
+            pileRef.child(Constants.TRANSFORM_REFERENCE).setValue(new PileData(newPiles.get(i).first.x, newPiles.get(i).first.y, 0));
+
+            pileOrder.add(pileRef.getKey());
+        }
     }
 
     public boolean isPileLoaded(String pile) {
