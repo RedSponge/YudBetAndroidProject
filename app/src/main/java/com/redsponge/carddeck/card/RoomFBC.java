@@ -3,24 +3,23 @@
     import android.util.Log;
 
 import androidx.annotation.NonNull;
-    import androidx.annotation.Nullable;
+import androidx.annotation.Nullable;
 
-    import com.google.firebase.database.DataSnapshot;
-    import com.google.firebase.database.DatabaseError;
-    import com.google.firebase.database.DatabaseReference;
-    import com.google.firebase.database.MutableData;
-    import com.google.firebase.database.Transaction;
-    import com.redsponge.carddeck.gl.Vector2;
-    import com.redsponge.carddeck.utils.ChildEventAdapter;
-    import com.redsponge.carddeck.utils.Pair;
-    import com.redsponge.carddeck.utils.SynchronizedList;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.MutableData;
+import com.google.firebase.database.Transaction;
+import com.redsponge.carddeck.gl.Vector2;
+import com.redsponge.carddeck.utils.ChildEventAdapter;
+import com.redsponge.carddeck.utils.Pair;
+import com.redsponge.carddeck.utils.SynchronizedList;
 
 import java.util.ArrayList;
-    import java.util.HashMap;
-    import java.util.Iterator;
+import java.util.Iterator;
 import java.util.List;
-    import java.util.Random;
-    import java.util.concurrent.ConcurrentHashMap;
+import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class RoomFBC implements Iterable<PileFBC> {
 
@@ -185,6 +184,7 @@ public class RoomFBC implements Iterable<PileFBC> {
 
                 mutableData.child(Constants.PILES_REFERENCE).setValue(null);
                 mutableData.child(Constants.PILE_ORDER_REFERENCE).setValue(null);
+
 
                 for (int i = 0; i < piles.size(); i++) {
                     System.out.println("Adding pile " + piles.get(i));

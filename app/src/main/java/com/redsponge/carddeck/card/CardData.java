@@ -1,5 +1,6 @@
 package com.redsponge.carddeck.card;
 
+
 public class CardData {
 
     private boolean isFlipped;

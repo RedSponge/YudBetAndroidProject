@@ -98,4 +98,8 @@ public class GameActivity extends Activity  {
         glView.getScreen().onAndroidEvent(Constants.TOGGLE_HAND_EVENT);
 //        glView.getScreen().onAndroidEvent(Constants.SHAKE_EVENT);
     }
+
+    public void exitRoom(View view) {
+        glView.getScreen().onAndroidEvent(Constants.SHAKE_EVENT);
+    }
 }
