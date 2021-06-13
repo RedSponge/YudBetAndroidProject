@@ -31,6 +31,13 @@ public class RoomFBC implements Iterable<PileFBC> {
 
     private final String roomName;
 
+    //region Listener variables
+
+    private ChildEventAdapter roomPlayerListAdapter;
+    private ChildEventAdapter roomPileListAdapter;
+
+    //endregion
+
     public RoomFBC(DatabaseReference reference) {
         this.reference = reference;
         this.roomName = reference.getKey();
@@ -46,7 +53,7 @@ public class RoomFBC implements Iterable<PileFBC> {
     }
 
     private void syncHands() {
-        reference.child(Constants.ROOM_PLAYERS_REFERENCE).addChildEventListener(new ChildEventAdapter() {
+        reference.child(Constants.ROOM_PLAYERS_REFERENCE).addChildEventListener(roomPlayerListAdapter = new ChildEventAdapter() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String prevChildName) {
                 if(playerCardsMap.containsKey(dataSnapshot.getKey())) {
@@ -70,7 +77,7 @@ public class RoomFBC implements Iterable<PileFBC> {
     }
 
     private void syncPiles() {
-        reference.child(Constants.PILES_REFERENCE).addChildEventListener(new ChildEventAdapter() {
+        reference.child(Constants.PILES_REFERENCE).addChildEventListener(roomPileListAdapter = new ChildEventAdapter() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String prevChildName) {
                 if(pileMap.containsKey(dataSnapshot.getKey())) {
@@ -214,6 +221,41 @@ public class RoomFBC implements Iterable<PileFBC> {
 
     public boolean isCardLoaded(String card) {
         return cardList.indexOf(card) != -1;
+    }
+
+    public String getRoomName() {
+        return roomName;
+    }
+
+    public void detach() {
+        reference.child(Constants.PILES_REFERENCE).removeEventListener(roomPileListAdapter);
+        reference.child(Constants.ROOM_PLAYERS_REFERENCE).removeEventListener(roomPlayerListAdapter);
+        pileMap.forEachValue(pileMap.size(), PileFBC::detach);
+        pileMap.clear();
+        pileOrder.detach();
+        cardList.detach();
+    }
+
+    /**
+     * Removes a player and creates a pile of their in-hand cards if they had any
+     * @param uid The player's UID
+     */
+    public void removePlayer(String uid) {
+        if(playerCardsMap.get(uid).size() > 0) {
+            SynchronizedList<String> playerCards = playerCardsMap.get(uid);
+            DatabaseReference pileRef = newPileRef();
+            pileRef.child(Constants.TRANSFORM_REFERENCE).setValue(new PileData(200, 100, 0));
+            playerCards.forEach(s -> {
+                pileRef.child(Constants.CARDS_REFERENCE).push().setValue(s);
+            });
+            pileOrder.add(pileRef.getKey());
+        }
+
+        reference.child(Constants.ROOM_PLAYERS_REFERENCE).child(uid).removeValue();
+    }
+
+    public int getPlayerAmount() {
+        return playerCardsMap.size();
     }
 
     public class PileIterator implements Iterator<PileFBC> {

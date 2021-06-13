@@ -1,6 +1,7 @@
 package com.redsponge.carddeck.card;
 
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
 import com.redsponge.carddeck.utils.Listeners;
 import com.redsponge.carddeck.utils.MathUtils;
 import com.redsponge.carddeck.utils.SynchronizedList;
@@ -8,12 +9,14 @@ import com.redsponge.carddeck.utils.SynchronizedList;
 public class PileFBC {
 
     private final RoomFBC roomIn;
-    private SynchronizedList<String> cardList;
+    private final SynchronizedList<String> cardList;
     private float drawnX, drawnY, drawnScale;
 
     private final DatabaseReference ref;
 
     private PileData data;
+
+    private ValueEventListener transformListener;
 
     public PileFBC(RoomFBC roomIn, DatabaseReference ref) {
         this.roomIn = roomIn;
@@ -27,7 +30,7 @@ public class PileFBC {
         this.drawnY = -100;
         this.data = new PileData();
 
-        ref.child(Constants.TRANSFORM_REFERENCE).addValueEventListener(Listeners.value(data -> {
+        ref.child(Constants.TRANSFORM_REFERENCE).addValueEventListener(transformListener = Listeners.value(data -> {
             this.data = data.getValue(PileData.class);
             if (this.data != null) {
                 if (drawnX < 0) drawnX = this.data.getX();
@@ -117,11 +120,6 @@ public class PileFBC {
         return ref;
     }
 
-    public boolean overlaps(PileFBC other) {
-        PileData otherData = other.getData();
-        return false;
-    }
-
     public boolean hasTopCard() {
         return cardList.size() > 0;
     }
@@ -144,5 +142,10 @@ public class PileFBC {
 
     public void delete() {
         ref.removeValue();
+    }
+
+    public void detach() {
+        cardList.detach();
+        ref.child(Constants.TRANSFORM_REFERENCE).removeEventListener(transformListener);
     }
 }

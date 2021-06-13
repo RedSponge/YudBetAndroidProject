@@ -61,7 +61,6 @@ public class AuthRegisterFragment extends Fragment {
         btnRegister = view.findViewById(R.id.btnRegister);
 
         btnRegister.setOnClickListener(this::tryRegister);
-        // set stuff for view
     }
 
     private void tryRegister(View view) {

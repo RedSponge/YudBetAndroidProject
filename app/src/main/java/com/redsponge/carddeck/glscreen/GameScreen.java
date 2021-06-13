@@ -179,8 +179,10 @@ public class GameScreen extends Screen implements InputHandler {
 
     @Override
     public void dispose() {
+        roomFBC.removePlayer(FirebaseAuth.getInstance().getCurrentUser().getUid());
         batch.dispose();
         packedTextures.dispose();
+        roomFBC.detach();
     }
 
     private void selectPile(String pileKey) {
@@ -239,8 +241,7 @@ public class GameScreen extends Screen implements InputHandler {
     }
 
     /**
-     *
-     * @return A list of {@link PileData}s and the card within them as a pair.
+     * @return A list of {@link PileData}s and the id of the card within them as a pair.
      */
     private List<Pair<PileData, String>> genHandPileData(float handHeightPercent) {
         if(playerHandList == null) return null;
@@ -316,26 +317,28 @@ public class GameScreen extends Screen implements InputHandler {
         Vector2 inWorld = viewport.unproject(tmpVector.set(x, y), tmpVector);
         inWorld.y = viewport.getWorldHeight() - inWorld.y;
 
+        boolean flipped = false;
+
+        if (!hasDoneSplit && Utils.secondsSince(pileSelectionTime) < 0.2f && inWorld.dst2(dragStartPos) < 20 * 20) {
+            String cardId = roomFBC.getPile(selectedPile).getCardId(0);
+            roomFBC.setCardFlip(cardId, !roomFBC.getCard(cardId).isFlipped());
+            flipped = true;
+        }
         if(isHandUp && isInHandSpace(inWorld)) {
             roomFBC.addPileToPlayerHand(FirebaseAuth.getInstance().getCurrentUser().getUid(), selectedPile);
-        } else {
-            if (!hasDoneSplit && Utils.secondsSince(pileSelectionTime) < 0.2f && inWorld.dst2(dragStartPos) < 20 * 20) {
-                String cardId = roomFBC.getPile(selectedPile).getCardId(0);
-                roomFBC.setCardFlip(cardId, !roomFBC.getCard(cardId).isFlipped());
-            } else {
-                String pileToMergeWith = null;
-                for (PileFBC pileFBC : roomFBC) {
-                    if (pileFBC.getReference().getKey().equals(selectedPile)) continue;
+        } else if(!flipped) {
+            String pileToMergeWith = null;
+            for (PileFBC pileFBC : roomFBC) {
+                if (pileFBC.getReference().getKey().equals(selectedPile)) continue;
 
-                    float dst2 = inWorld.dst2(pileFBC.getData().getCenter());
-                    if (dst2 < Constants.MIN_PILE_MERGE_DST2) {
-                        pileToMergeWith = pileFBC.getReference().getKey();
-                    }
+                float dst2 = inWorld.dst2(pileFBC.getData().getCenter());
+                if (dst2 < Constants.MIN_PILE_MERGE_DST2) {
+                    pileToMergeWith = pileFBC.getReference().getKey();
                 }
+            }
 
-                if (pileToMergeWith != null) {
-                    roomFBC.mergePiles(pileToMergeWith, selectedPile);
-                }
+            if (pileToMergeWith != null) {
+                roomFBC.mergePiles(pileToMergeWith, selectedPile);
             }
             roomFBC.getPile(selectedPile).setChosenTime(0);
         }
@@ -362,5 +365,14 @@ public class GameScreen extends Screen implements InputHandler {
     private void toggleHand() {
         isHandUp = !isHandUp;
         handSwitchTime = System.nanoTime();
+    }
+
+    @Override
+    public Object queryData(int request) {
+        switch (request) {
+            case Constants.QUERY_PLAYER_AMOUNT:
+                return roomFBC.getPlayerAmount();
+        }
+        return null;
     }
 }

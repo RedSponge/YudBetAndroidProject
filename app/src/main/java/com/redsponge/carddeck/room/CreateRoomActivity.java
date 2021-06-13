@@ -20,7 +20,6 @@ import com.redsponge.carddeck.R;
 import com.redsponge.carddeck.card.CardData;
 import com.redsponge.carddeck.card.Constants;
 import com.redsponge.carddeck.card.PileData;
-import com.redsponge.carddeck.room.ListRoomItem;
 import com.redsponge.carddeck.utils.Utils;
 
 import java.util.ArrayList;
@@ -102,13 +101,13 @@ public class CreateRoomActivity extends Activity {
         for (String suit : Constants.SUITS) {
             for (int i = Constants.CARD_MIN; i <= Constants.CARD_MAX; i++) {
                 DatabaseReference cardRef = roomRef.child(Constants.CARDS_REFERENCE).push();
-                cardRef.setValue(new CardData(false, suit, i));
+                cardRef.setValue(new CardData(true, suit, i));
                 cardIds.add(cardRef.getKey());
             }
         }
 
         DatabaseReference initialPileRef = roomRef.child(Constants.PILES_REFERENCE).push();
-        initialPileRef.child(Constants.TRANSFORM_REFERENCE).setValue(new PileData());
+        initialPileRef.child(Constants.TRANSFORM_REFERENCE).setValue(new PileData(320 * 1.5f / 2f, 180 * 1.5f / 2f, 0));
         for (String cardId : cardIds) {
             initialPileRef.child(Constants.CARDS_REFERENCE).push().setValue(cardId);
         }

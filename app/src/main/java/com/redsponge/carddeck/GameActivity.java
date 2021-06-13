@@ -1,17 +1,18 @@
 package com.redsponge.carddeck;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.Nullable;
 
+import com.google.firebase.database.FirebaseDatabase;
 import com.redsponge.carddeck.card.Constants;
 import com.redsponge.carddeck.gl.GLGameView;
 import com.redsponge.carddeck.gl.RawReader;
@@ -23,6 +24,8 @@ public class GameActivity extends Activity  {
     private SensorManager sensorManager;
     private float accelLast, accelCurrent, accel;
     private long lastShakeTime;
+
+    private String roomName;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -36,13 +39,9 @@ public class GameActivity extends Activity  {
         accelLast = SensorManager.GRAVITY_EARTH;
         accelCurrent = SensorManager.GRAVITY_EARTH;
 
-        Log.i("GameActivity", "Wassup!");
-//        decorView.setOnSystemUiVisibilityChangeListener(visibility -> {
-//            Log.i("GameActivity", "Is Fullscreen Now: " + ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0));
-//        });
         RawReader.resources = getResources();
 
-        String roomName = getIntent().getStringExtra(Constants.ROOM_NAME_EXTRA);
+        roomName = getIntent().getStringExtra(Constants.ROOM_NAME_EXTRA);
 
         glView = findViewById(R.id.glView);
         glView.setPendingScreen(new GameScreen(this, roomName));
@@ -96,10 +95,27 @@ public class GameActivity extends Activity  {
 
     public void toggleHand(View view) {
         glView.getScreen().onAndroidEvent(Constants.TOGGLE_HAND_EVENT);
-//        glView.getScreen().onAndroidEvent(Constants.SHAKE_EVENT);
     }
 
     public void exitRoom(View view) {
-        glView.getScreen().onAndroidEvent(Constants.SHAKE_EVENT);
+        if((Integer) glView.getScreen().queryData(Constants.QUERY_PLAYER_AMOUNT) == 1) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Last Player!")
+                    .setMessage("You are the last player to exit the room, delete it?")
+                    .setPositiveButton("Yes!", (dialog, option) -> {
+                        glView.getScreen().dispose();
+                        FirebaseDatabase.getInstance().getReference(Constants.ROOMS_REFERENCE).child(roomName).removeValue();
+                        finish();
+                    })
+                    .setNegativeButton("No!", (dialog, option) -> {
+                        glView.getScreen().dispose();
+                        finish();
+                    })
+                    .setNeutralButton("Cancel", null)
+                    .show();
+        } else {
+            glView.getScreen().dispose();
+            finish();
+        }
     }
 }

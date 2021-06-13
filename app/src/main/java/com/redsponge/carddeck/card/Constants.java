@@ -47,4 +47,7 @@ public class Constants {
     public static final int HAND_ANIMATION_HEIGHT = 45;
     public static final int HAND_ROW_LENGTH = 26;
     public static final int HAND_BACKGROUND_BOTTOM_Y = -260;
+
+    // Queries
+    public static final int QUERY_PLAYER_AMOUNT = 1;
 }

@@ -21,4 +21,6 @@ public abstract class Screen {
     public abstract void dispose();
 
     public abstract void onAndroidEvent(int eventId);
+
+    public abstract Object queryData(int request);
 }
