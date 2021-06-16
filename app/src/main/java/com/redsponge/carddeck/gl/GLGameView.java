@@ -58,7 +58,9 @@ public class GLGameView extends GLSurfaceView {
 
     @Override
     public boolean onDragEvent(DragEvent event) {
-        if(inputHandler != null) inputHandler.onDrag(event.getX(), event.getY());
+        if(inputHandler != null) {
+            inputHandler.onDrag(event.getX(), event.getY());
+        }
         return super.onDragEvent(event);
     }
 

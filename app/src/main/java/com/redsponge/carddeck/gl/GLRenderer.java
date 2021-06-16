@@ -24,16 +24,20 @@ public class GLRenderer implements GLSurfaceView.Renderer, InputHandler {
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        if(screen != null) {
-            screen.show();
+        if (screen != null) {
+            synchronized (this) {
+                screen.show();
+            }
         }
         lastTime = System.currentTimeMillis();
     }
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        if(screen != null) {
-            screen.resize(width, height);
+        if (screen != null) {
+            synchronized (this) {
+                screen.resize(width, height);
+            }
         }
 
         lastWidth = width;
@@ -48,45 +52,51 @@ public class GLRenderer implements GLSurfaceView.Renderer, InputHandler {
         float delta = (now - lastTime) / 1000f;
         lastTime = now;
 
-        if(screen != null) {
-            screen.render(delta);
+        if (screen != null) {
+            synchronized (this) {
+                screen.render(delta);
+            }
         }
     }
 
     private void updatePendingScreen() {
-        if(pendingScreen != null) {
+        if (pendingScreen != null) {
             switchScreen(pendingScreen);
             pendingScreen = null;
         }
     }
 
     private void switchScreen(Screen screen) {
-        if(this.screen != null) {
-            this.screen.hide();
-            this.screen.dispose();
+        if (this.screen != null) {
+            synchronized (this) {
+                this.screen.hide();
+                this.screen.dispose();
+            }
         }
         this.screen = screen;
-        this.screen.show();
-        this.screen.resize(lastWidth, lastHeight);
+        synchronized (this) {
+            this.screen.show();
+            this.screen.resize(lastWidth, lastHeight);
+        }
     }
 
     @Override
     public void onTouch(float x, float y) {
-        if(screen instanceof InputHandler) {
+        if (screen instanceof InputHandler) {
             ((InputHandler) screen).onTouch(x, y);
         }
     }
 
     @Override
     public void onDrag(float x, float y) {
-        if(screen instanceof InputHandler) {
+        if (screen instanceof InputHandler) {
             ((InputHandler) screen).onDrag(x, y);
         }
     }
 
     @Override
     public void onRelease(float x, float y) {
-        if(screen instanceof InputHandler) {
+        if (screen instanceof InputHandler) {
             ((InputHandler) screen).onRelease(x, y);
         }
     }

@@ -200,7 +200,8 @@ public class GameScreen extends Screen implements InputHandler {
         String finalChosen = null;
         for (PileFBC pileFBC : roomFBC) {
             PileData data = pileFBC.getData();
-            if (data.contains(inWorld) && !data.isChosen()) {
+
+            if (pileFBC.getSize() > 0 && data.contains(inWorld) && !data.isChosen()) {
                 finalChosen = pileFBC.getReference().getKey();
             }
         }
@@ -283,6 +284,9 @@ public class GameScreen extends Screen implements InputHandler {
                 newPile.child(Constants.CARDS_REFERENCE).push().setValue(pileFBC.getCardId(0));
                 pileFBC.getCardList().removeIndex(0);
                 pileFBC.setChosenTime(0);
+                if(pileFBC.getCardList().size() == 0) {
+                    roomFBC.removePile(pileFBC.getReference().getKey());
+                }
 
                 roomFBC.addPileToOrder(newPile.getKey());
                 hasDoneSplit = true;
@@ -313,6 +317,10 @@ public class GameScreen extends Screen implements InputHandler {
     @Override
     public void onRelease(float x, float y) {
         if (selectedPile == null) return;
+        if(!roomFBC.isPileLoaded(selectedPile) || roomFBC.getPile(selectedPile).getCardList().size() == 0) {
+            selectedPile = null;
+            return;
+        }
 
         Vector2 inWorld = viewport.unproject(tmpVector.set(x, y), tmpVector);
         inWorld.y = viewport.getWorldHeight() - inWorld.y;
@@ -330,6 +338,7 @@ public class GameScreen extends Screen implements InputHandler {
             String pileToMergeWith = null;
             for (PileFBC pileFBC : roomFBC) {
                 if (pileFBC.getReference().getKey().equals(selectedPile)) continue;
+                if (pileFBC.getSize() == 0) continue;
 
                 float dst2 = inWorld.dst2(pileFBC.getData().getCenter());
                 if (dst2 < Constants.MIN_PILE_MERGE_DST2) {

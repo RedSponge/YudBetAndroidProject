@@ -1,8 +1,11 @@
 package com.redsponge.carddeck.utils;
 
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.core.utilities.Validation;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Base64;
@@ -54,5 +57,16 @@ public class Utils {
 
     public static <T> T readReferenceIfExists(DataSnapshot ref, Class<T> refType, T otherwise) {
         return ref.exists() ? ref.getValue(refType) : otherwise;
+    }
+
+    public static boolean isFirebaseValidPathString(String path) {
+        try {
+            Method isValidPathString = Validation.class.getDeclaredMethod("isValidPathString", String.class);
+            isValidPathString.setAccessible(true);
+            return (boolean) isValidPathString.invoke(null, path);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

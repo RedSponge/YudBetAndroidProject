@@ -16,6 +16,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.core.utilities.Validation;
 import com.redsponge.carddeck.R;
 import com.redsponge.carddeck.card.CardData;
 import com.redsponge.carddeck.card.Constants;
@@ -60,7 +61,7 @@ public class CreateRoomActivity extends Activity {
         int maxPlayers = Utils.tryParseInt(etMaxPlayers.getText().toString(), -1);
         String password = etPassword.getText().toString();
 
-        if(Utils.isBlankOrNull(roomName)) {
+        if(Utils.isBlankOrNull(roomName) || !Utils.isFirebaseValidPathString(roomName)) {
             etRoomName.setError("Invalid Room Name!");
             unlockUI();
             return;

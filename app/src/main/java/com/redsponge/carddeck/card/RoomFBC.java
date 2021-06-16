@@ -258,6 +258,11 @@ public class RoomFBC implements Iterable<PileFBC> {
         return playerCardsMap.size();
     }
 
+    public void removePile(String key) {
+        pileOrder.removeValue(key);
+        pileMap.get(key).getReference().removeValue();
+    }
+
     public class PileIterator implements Iterator<PileFBC> {
         private int i = 0;
 

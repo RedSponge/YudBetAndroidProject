@@ -97,7 +97,11 @@ public class GameActivity extends Activity  {
         glView.getScreen().onAndroidEvent(Constants.TOGGLE_HAND_EVENT);
     }
 
-    public void exitRoom(View view) {
+    public void exitRoomOnClick(View view) {
+        exitRoom();
+    }
+
+    public void exitRoom() {
         if((Integer) glView.getScreen().queryData(Constants.QUERY_PLAYER_AMOUNT) == 1) {
             new AlertDialog.Builder(this)
                     .setTitle("Last Player!")
@@ -117,5 +121,10 @@ public class GameActivity extends Activity  {
             glView.getScreen().dispose();
             finish();
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        exitRoom();
     }
 }
