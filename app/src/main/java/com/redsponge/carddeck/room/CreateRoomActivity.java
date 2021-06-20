@@ -16,7 +16,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.database.core.utilities.Validation;
 import com.redsponge.carddeck.R;
 import com.redsponge.carddeck.card.CardData;
 import com.redsponge.carddeck.card.Constants;
@@ -67,7 +66,7 @@ public class CreateRoomActivity extends Activity {
             return;
         }
 
-        if(maxPlayers == -1) {
+        if(maxPlayers <= 0) {
             etMaxPlayers.setError("Invalid Number!");
             unlockUI();
             return;

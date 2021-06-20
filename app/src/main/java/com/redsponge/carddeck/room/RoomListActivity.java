@@ -27,6 +27,7 @@ import com.redsponge.carddeck.GameActivity;
 import com.redsponge.carddeck.R;
 import com.redsponge.carddeck.auth.AuthActivity;
 import com.redsponge.carddeck.card.Constants;
+import com.redsponge.carddeck.utils.Listeners;
 import com.redsponge.carddeck.utils.Utils;
 
 public class RoomListActivity extends Activity {
@@ -62,12 +63,26 @@ public class RoomListActivity extends Activity {
         db = FirebaseDatabase.getInstance();
         auth = FirebaseAuth.getInstance();
 
-        srlList.setOnRefreshListener(this::loadRooms);
-        loadRooms();
+        testForInRoom(() -> {
+            srlList.setOnRefreshListener(this::loadRooms);
+            loadRooms();
+        });
 
         isSettingsFabOpen = false;
 
         fabLogout.setVisibility(View.INVISIBLE);
+    }
+
+    private void testForInRoom(Runnable onNotInRoom) {
+        db.getReference(Constants.USERS_REFERENCE).child(auth.getCurrentUser().getUid()).child(Constants.USER_CURRENT_ROOM_REFERENCE)
+                .addListenerForSingleValueEvent(Listeners.value((snapshot) -> {
+                    if(snapshot.exists()) {
+                        String roomName = snapshot.getValue(String.class);
+                        joinRoom(roomName);
+                    } else {
+                        onNotInRoom.run();
+                    }
+                }));
     }
 
     @Override
@@ -118,21 +133,22 @@ public class RoomListActivity extends Activity {
                         if(!Utils.hashPassword(pwInput).equals(roomItem.getHashedPassword())) {
                             Toast.makeText(this, "Incorrect Password!", Toast.LENGTH_SHORT).show();
                         } else {
-                            joinRoom(roomItem);
+                            joinRoom(roomItem.getName());
                         }
                     })
                     .show();
         } else {
-            joinRoom(roomItem);
+            joinRoom(roomItem.getName());
         }
     }
 
-    private void joinRoom(ListRoomItem roomItem) {
-        db.getReference(Constants.ROOMS_REFERENCE).child(roomItem.getName()).child(Constants.ROOM_PLAYERS_REFERENCE)
+    private void joinRoom(String roomName) {
+        db.getReference(Constants.ROOMS_REFERENCE).child(roomName).child(Constants.ROOM_PLAYERS_REFERENCE)
                 .child(auth.getCurrentUser().getUid()).child("Connected").setValue(true);
+        db.getReference(Constants.USERS_REFERENCE).child(auth.getCurrentUser().getUid()).child(Constants.USER_CURRENT_ROOM_REFERENCE).setValue(roomName);
 
         Intent i = new Intent(this, GameActivity.class);
-        i.putExtra(Constants.ROOM_NAME_EXTRA, roomItem.getName());
+        i.putExtra(Constants.ROOM_NAME_EXTRA, roomName);
         startActivity(i);
     }
 

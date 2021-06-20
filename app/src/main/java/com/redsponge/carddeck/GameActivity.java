@@ -12,6 +12,7 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.FirebaseDatabase;
 import com.redsponge.carddeck.card.Constants;
 import com.redsponge.carddeck.gl.GLGameView;
@@ -27,10 +28,17 @@ public class GameActivity extends Activity  {
 
     private String roomName;
 
+    private FirebaseDatabase db;
+    private FirebaseAuth auth;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         hideSystemUI();
+
+
+        auth = FirebaseAuth.getInstance();
+        db = FirebaseDatabase.getInstance();
 
         setContentView(R.layout.activity_game);
 
@@ -45,6 +53,7 @@ public class GameActivity extends Activity  {
 
         glView = findViewById(R.id.glView);
         glView.setPendingScreen(new GameScreen(this, roomName));
+
     }
 
     private void registerShakeSensor() {
@@ -107,20 +116,25 @@ public class GameActivity extends Activity  {
                     .setTitle("Last Player!")
                     .setMessage("You are the last player to exit the room, delete it?")
                     .setPositiveButton("Yes!", (dialog, option) -> {
-                        glView.getScreen().dispose();
-                        FirebaseDatabase.getInstance().getReference(Constants.ROOMS_REFERENCE).child(roomName).removeValue();
-                        finish();
+                        exitScreen(true);
                     })
                     .setNegativeButton("No!", (dialog, option) -> {
-                        glView.getScreen().dispose();
-                        finish();
+                        exitScreen(false);
                     })
                     .setNeutralButton("Cancel", null)
                     .show();
         } else {
-            glView.getScreen().dispose();
-            finish();
+            exitScreen(false);
         }
+    }
+
+    public void exitScreen(boolean deleteRoom) {
+        glView.getScreen().dispose();
+        if(deleteRoom) {
+            db.getReference(Constants.ROOMS_REFERENCE).child(roomName).removeValue();
+        }
+        db.getReference(Constants.USERS_REFERENCE).child(auth.getCurrentUser().getUid()).child(Constants.USER_CURRENT_ROOM_REFERENCE).removeValue();
+        finish();
     }
 
     @Override

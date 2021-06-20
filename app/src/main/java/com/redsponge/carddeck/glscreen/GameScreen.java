@@ -346,10 +346,10 @@ public class GameScreen extends Screen implements InputHandler {
                 }
             }
 
+            roomFBC.getPile(selectedPile).setChosenTime(0);
             if (pileToMergeWith != null) {
                 roomFBC.mergePiles(pileToMergeWith, selectedPile);
             }
-            roomFBC.getPile(selectedPile).setChosenTime(0);
         }
 
         selectedPile = null;

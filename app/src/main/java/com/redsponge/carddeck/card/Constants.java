@@ -19,6 +19,8 @@ public class Constants {
     public static final String ROOM_PLAYERS_REFERENCE = "players";
     public static final String PLAYER_CARDS_REFERENCE = "cards";
 
+    public static final String USER_CURRENT_ROOM_REFERENCE = "currentRoom";
+
     public static final String[] SUITS = new String[] {"spade", "heart", "diamond", "club"};
 
     public static final int CARD_MIN = 1;
