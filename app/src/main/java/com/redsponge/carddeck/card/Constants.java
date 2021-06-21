@@ -4,7 +4,7 @@ public class Constants {
 
     public static final String CARDS_REFERENCE = "cards";
     public static final String PILE_ORDER_REFERENCE = "pile_order";
-    public static final String MAX_PLAYERS_REFERENCE = "maxPlayers";
+    public static final String ROOM_MAX_PLAYERS_REFERENCE = "maxPlayers";
     public static final String ROOMS_REFERENCE = "rooms";
     public static final String PASSWORD_REFERENCE = "hashedPassword";
     public static final String ROOM_NAME_EXTRA = "room_name";

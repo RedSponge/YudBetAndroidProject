@@ -98,7 +98,7 @@ public class RoomListActivity extends Activity {
                 adapter.clear();
                 for (DataSnapshot child : dataSnapshot.getChildren()) {
                     ListRoomItem item = new ListRoomItem(child.getKey(),
-                            child.child(Constants.MAX_PLAYERS_REFERENCE).getValue(Integer.class),
+                            child.child(Constants.ROOM_MAX_PLAYERS_REFERENCE).getValue(Integer.class),
                             Utils.readReferenceIfExists(child.child(Constants.PASSWORD_REFERENCE), String.class, ""),
                             child.child(Constants.ROOM_PLAYERS_REFERENCE).exists() ? (int) child.child(Constants.ROOM_PLAYERS_REFERENCE).getChildrenCount() : 0);
 
@@ -138,7 +138,17 @@ public class RoomListActivity extends Activity {
                     })
                     .show();
         } else {
-            joinRoom(roomItem.getName());
+            db.getReference(Constants.ROOMS_REFERENCE).child(roomItem.getName()).addListenerForSingleValueEvent(Listeners.value(snapshot -> {
+                if(!snapshot.exists()) {
+                    Toast.makeText(RoomListActivity.this, "This room doesn't exist!", Toast.LENGTH_SHORT).show();
+                    loadRooms();
+                } else if(snapshot.child(Constants.ROOM_PLAYERS_REFERENCE).getChildrenCount() >= snapshot.child(Constants.ROOM_MAX_PLAYERS_REFERENCE).getValue(Integer.class)) {
+                    Toast.makeText(RoomListActivity.this, "This room is full!", Toast.LENGTH_SHORT).show();
+                    loadRooms();
+                } else {
+                    joinRoom(roomItem.getName());
+                }
+            }));
         }
     }
 

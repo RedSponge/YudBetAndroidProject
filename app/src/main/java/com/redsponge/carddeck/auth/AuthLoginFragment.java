@@ -83,6 +83,9 @@ public class AuthLoginFragment extends Fragment {
                             case "ERROR_INVALID_EMAIL": {
                                 emailError = Optional.of("Invalid email address!");
                             } break;
+                            case "ERROR_WRONG_PASSWORD": {
+                                passwordError = Optional.of("Wrong password!");
+                            } break;
                             default: {
                                 Toast.makeText(getContext(), "Not handled error code on login fail: " + errorCode, Toast.LENGTH_SHORT).show();
                                 Log.e("AuthLoginFragment", "Not handled error code on login fail: " + errorCode);

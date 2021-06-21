@@ -1,5 +1,7 @@
 package com.redsponge.carddeck.room;
 
+import com.google.firebase.database.Exclude;
+
 public class ListRoomItem {
 
     private String name;
@@ -42,10 +44,12 @@ public class ListRoomItem {
         return !hashedPassword.isEmpty();
     }
 
+    @Exclude
     public int getPlayerCount() {
         return playerCount;
     }
 
+    @Exclude
     public void setPlayerCount(int playerCount) {
         this.playerCount = playerCount;
     }
